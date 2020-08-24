@@ -9,8 +9,6 @@ namespace GatewayCoreModule
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Microsoft.Azure.Devices.Shared;
     using Newtonsoft.Json;
-    using System.Net;
-    using System.Net.Sockets;
     using Hardware;
     using CommonLibrary;
     using Devices;

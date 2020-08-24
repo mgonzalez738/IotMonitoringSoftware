@@ -12,11 +12,11 @@ RUN curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l ~/vsdbg
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build-env
 WORKDIR /app
 
-COPY *.csproj ./
+COPY ./modules/GatewayCore/*.csproj ./
 RUN dotnet restore
 
 COPY . ./
-RUN dotnet publish -c Debug -o out
+RUN dotnet publish "modules/GatewayCore/GatewayCore.csproj" -c Debug -o out
 
 FROM base
 WORKDIR /app
