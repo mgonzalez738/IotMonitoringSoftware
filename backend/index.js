@@ -13,6 +13,8 @@ const gatewayRoutes = require('./routes/gatewayRoute');
 
 const iotHubEventConsumer = require('./consumers/iotHubEventConsumer');
 
+const ftpServer = require('./consumers/ftpConsumer');
+
 
 mongoose.connect('mongodb://localhost/IotMonitoring', {
     useUnifiedTopology: true,
@@ -48,7 +50,10 @@ app.use(errorHandler);
 
 iotHubEventConsumer.suscribe();
 
+ftpServer.start();
+
 // Start Server
 app.listen(listenPort, () => {
     console.log("IoT Server iniciado (Puerto " + listenPort + ").");
 })
+
