@@ -1,0 +1,9 @@
+D:\IotMonitoringSoftware\gateway\CommonLibrary\bin\Debug\netcoreapp3.1\CommonLibrary.deps.json
+D:\IotMonitoringSoftware\gateway\CommonLibrary\bin\Debug\netcoreapp3.1\CommonLibrary.dll
+D:\IotMonitoringSoftware\gateway\CommonLibrary\bin\Debug\netcoreapp3.1\CommonLibrary.pdb
+D:\IotMonitoringSoftware\gateway\CommonLibrary\obj\Debug\netcoreapp3.1\CommonLibrary.csprojAssemblyReference.cache
+D:\IotMonitoringSoftware\gateway\CommonLibrary\obj\Debug\netcoreapp3.1\CommonLibrary.AssemblyInfoInputs.cache
+D:\IotMonitoringSoftware\gateway\CommonLibrary\obj\Debug\netcoreapp3.1\CommonLibrary.AssemblyInfo.cs
+D:\IotMonitoringSoftware\gateway\CommonLibrary\obj\Debug\netcoreapp3.1\CommonLibrary.csproj.CoreCompileInputs.cache
+D:\IotMonitoringSoftware\gateway\CommonLibrary\obj\Debug\netcoreapp3.1\CommonLibrary.dll
+D:\IotMonitoringSoftware\gateway\CommonLibrary\obj\Debug\netcoreapp3.1\CommonLibrary.pdb

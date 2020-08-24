@@ -1,0 +1,4 @@
+D:\IotMonitoringSoftware\gateway\CommonLibrary\obj\Debug\netstandard2.0\CommonLibrary.csprojAssemblyReference.cache
+D:\IotMonitoringSoftware\gateway\CommonLibrary\obj\Debug\netstandard2.0\CommonLibrary.AssemblyInfoInputs.cache
+D:\IotMonitoringSoftware\gateway\CommonLibrary\obj\Debug\netstandard2.0\CommonLibrary.AssemblyInfo.cs
+D:\IotMonitoringSoftware\gateway\CommonLibrary\obj\Debug\netstandard2.0\CommonLibrary.csproj.CoreCompileInputs.cache
