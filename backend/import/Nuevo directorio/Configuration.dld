@@ -1,0 +1,143 @@
+'PB63
+
+' Ubicacion
+
+Const Location = "KP 196+600"
+
+' Horarios 
+
+Const DailyPanelCheckHour = 12       'Verifica tension panel
+Const DailyAquisitionHour = 11       'Adquiere sensores diarios y archivos de remotos tipo 1 
+Const FtpMinutesDelay = 00           'Transmite FTP una hora despues de Adquisicion + MinutesDelay
+
+' Alarmas
+
+Const HourlyRainHighA = 20	     'Envia Alarma si Lluvia Horaria >= 20 mm/h en el Pluviometro A
+Const AlarmEmailList = "alerta.monitoreo@coga.pe, mgonzalez@giegroup.net"
+
+' Registro
+Const RegisterDaysNumber = 65       ' Dias que mantiene datos en tablas antes de sobreescribir
+
+'Habilitacion de Funcionalidades
+
+Const EnablePanelSense = false       'Adquiere Tension de Panel Solar
+Const EnablePluviometerA = false     'Adquiere Pluviometro A
+Const EnablePluviometerB = false     'Adquiere Pluviometro B
+Const EnableReflexometer = false     'Adquiere Reflexometro
+Const EnableVwsg = true              'Adquiere Sensores VWSG
+Const EnablePz = false               'Adquiere Sensores Pz
+Const EnableInclinometer1 = true     'Adquiere Inclinometro por Port 1
+Const EnableInclinometer2 = false    'Adquiere Inclinometro por Port 2
+
+'Habilitacion de Remotos
+
+Const EnableNode1Remote1 = false     'Adquiere archivos de Nodo1
+Const EnableNode1Remote2 = false     'Adquiere archivos de Nodo1
+Const EnableNode1Remote3 = false     'Adquiere archivos de Nodo1
+Const EnableNode2Remote1 = false     'Adquiere VWSG y Piezometros de Nodo2
+Const EnableNode2Remote2 = false     'Adquiere VWSG y Piezometros de Nodo2
+Const EnableNode2Remote3 = false     'Adquiere VWSG y Piezometros de Nodo2
+
+'Configuracion Nodo
+
+Const PackBusLocal = 63              'Direccion PackBus CR1000X del Nodo
+Const PackBusAWV200 = 64             'Direccion PackBus AW200 del Nodo
+Const PackBusClockSyncSource = 61    'Direccion del Nodo que envia los reportes de sincronizacion de clock
+
+Const EnableFtp = false              'Envia archivos de datos a servidor Ftp por Ethernet
+Const EnableMaster = false           'Habilitar si posee nodos esclavos (Habilita caracteristicas de Router Pakbus)
+Const EnableSlave = true             'Acepta sincronizar el clock desde otro nodo y activa watchdog PakBus
+
+Const CommWatchdogFtpLimit = 2       'Dias para reinicio (Si es Master)
+Const CommWatchdogPakBusLimit = 2    'Dias para reinicio (Si es Slave)
+Const DeleteBckAfterSend = false     'Borra backups de master y remotos luego de enviar
+
+'Configuracion Remotos
+
+Const PackBusNode1Remote1 = 0        'Direccion PackBus del Nodo Esclavo Tipo 1
+Const PackBusNode1Remote2 = 0        'Direccion PackBus del Nodo Esclavo Tipo 1
+Const PackBusNode1Remote3 = 0        'Direccion PackBus del Nodo Esclavo Tipo 1
+
+Const PackBusNode2Remote1 = 0        'Direccion PackBus del Nodo Esclavo Tipo 2
+Const EnableRemote1Vwsg = true
+Const EnableRemote1Pz = false
+
+Const PackBusNode2Remote2 = 0        'Direccion PackBus del Nodo Esclavo Tipo 2
+Const EnableRemote2Vwsg = true
+Const EnableRemote2Pz = true
+
+Const PackBusNode2Remote3 = 0        'Direccion PackBus del Nodo Esclavo Tipo 2
+Const EnableRemote3Vwsg = true
+Const EnableRemote3Pz = true
+
+'Configuracion VWSG
+
+Const VwsgStartFreq = 800            'Inicio barrido frecuencia VWSG
+Const VwsgEndFreq = 2400             'Fin barrido frecuencia VWSG
+
+'Configuracion Pz
+
+Const PzStartFreq = 800              'Inicio barrido frecuencia Piezometros
+Const PzEndFreq = 3500               'Fin barrido frecuencia Piezometros
+
+'Configuracion Inclinometros
+
+Const NodesInclinometer1 = 25        ' Cantidad de nodos del inclinometro 1 Geoflex (Max 60)
+Const NodesInclinometer2 = 5         ' Cantidad de nodos del inclinometro 2 Geoflex (Max 60)
+
+Const TypeInclinometer2 = 2          'Tipo del inclinometro 2: 1 = Geoflex / 2 = Measurand  
+
+'CONSTANTES DE CALCULO
+
+'Vibrating Wire Strain Gauges
+
+'VWSG A = 0.0007576 B = 0 C = -2030.1 (All)
+Dim VwsgABC(3) = { 0.0007576, 0, -2030.1 }
+
+' Piezometros
+
+'SN 1802922 Cable 22m PSI A = -1.338109E-5 B = -9.557268E-3 C = 1.428640E+2
+'SN 1802923 Cable 20m PSI A = -1.603534E-5 B = -4.472142E-3 C = 1.355203E+2
+'SN 1802924 Cable 20m PSI A = -1.078948E-5 B = -3.488625E-2 C = 2.021011E+2
+'SN 1802925 Cable 17m PSI A = -1.487480E-5 B = -1.363935E-2 C = 1.721457E+2
+'SN 1802926 Cable 8m  PSI A = -9.314850E-6 B = -3.653496E-2 C = 1.859355E+2
+'SN 1802927 Cable 14m PSI A = -1.664236E-5 B =  3.192281E-3 C = 1.362660E+2
+'SN 1802928 Cable 16m PSI A = -1.243235E-5 B = -1.705554E-2 C = 1.518702E+2
+'SN 1802929 Cable 20m PSI A = -1.535648E-5 B = -8.184799E-3 C = 1.509444E+2
+
+' Piezometros Locales
+      
+Dim Pz1ABCLocal(3) = { 0, 1, 0 }
+Dim Pz2ABCLocal(3) = { 0, 1, 0 }
+Dim Pz3ABCLocal(3) = { 0, 1, 0 }
+Dim Pz4ABCLocal(3) = { 0, 1, 0 }
+
+' Piezometros Esclavo 1 (Tipo 2)
+
+Dim Pz1ABCRemote1(3) = { 0, 1, 0 }
+Dim Pz2ABCRemote1(3) = { 0, 1, 0 }
+Dim Pz3ABCRemote1(3) = { 0, 1, 0 }
+Dim Pz4ABCRemote1(3) = { 0, 1, 0 }
+
+' Piezometros Esclavo 2 (Tipo 2)
+
+Dim Pz1ABCRemote2(3) = { 0, 1, 0 }
+Dim Pz2ABCRemote2(3) = { 0, 1, 0 }
+Dim Pz3ABCRemote2(3) = { 0, 1, 0 }
+Dim Pz4ABCRemote2(3) = { 0, 1, 0 }
+
+' Piezometros Esclavo 3 (Tipo 2)
+
+Dim Pz1ABCRemote3(3) = { 0, 1, 0 }
+Dim Pz2ABCRemote3(3) = { 0, 1, 0 }
+Dim Pz3ABCRemote3(3) = { 0, 1, 0 }
+Dim Pz4ABCRemote3(3) = { 0, 1, 0 }
+
+' Pluviometros
+
+Dim PluviometerATip = 0.1 '0.1 mm per tip
+Dim PluviometerBTip = 0.1 '0.1 mm per tip
+
+' Divisor entrada panel solar
+
+Dim PanelSenseGain = 0.0066225 

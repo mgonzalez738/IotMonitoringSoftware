@@ -15,6 +15,8 @@ const iotHubEventConsumer = require('./consumers/iotHubEventConsumer');
 
 const ftpServer = require('./consumers/ftpConsumer');
 
+const dayTime = require('./services/daytime')
+
 
 mongoose.connect('mongodb://localhost/IotMonitoring', {
     useUnifiedTopology: true,
@@ -54,6 +56,6 @@ ftpServer.start();
 
 // Start Server
 app.listen(listenPort, () => {
-    console.log("IoT Server iniciado (Puerto " + listenPort + ").");
+  console.log(dayTime.getUtcString() + "\x1b[34mApi: Start listening on port " + listenPort + "\x1b[0m");
 })
 
