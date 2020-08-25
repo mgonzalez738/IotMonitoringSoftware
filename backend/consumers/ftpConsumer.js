@@ -4,52 +4,46 @@ const path = require('path');
 
 const dayTime = require('../services/daytime')
 
-// Cadenas de conexion activa y pasiva
-const url_string = "ftp://" + process.env.FTP_SRV_ADDRESS + ":" + process.env.FTP_SRV_PORT;
-const pasv_url_string = "ftp://" + process.env.FTP_SRV_ADDRESS
-
 // Inicia el servicio
 
 exports.start = async () => {  
 
-    // Opciones del servicio
-    const options = {
-        url: url_string,
-        //greeting: ["Hola"],
-        pasv_url: pasv_url_string,
-        log: bunyan.createLogger({name: 'test', level: 'trace'}),
-    }
-
     // Crea el servicio
-    //const server = new FtpSrv(options); 
 
     const server = new FtpSrv({
-        log: bunyan.createLogger({name: 'test', level: 'trace'}),
-        url: 'ftp://127.0.0.1:8880',
-        pasv_url: '192.168.80.50',
-        pasv_min: 8881,
-        greeting: ['Welcome', 'to', 'the', 'jungle!'],
-        file_format: 'ep',
+        log: bunyan.createLogger({name: 'test', level: 60}),
+        url: 'ftp://0.0.0.0:' + process.env.FTP_SRV_PORT,
+        pasv_url: 'ftp://' + process.env.FTP_SRV_PASV_ADDRESS,
+        pasv_min: process.env.FTP_SRV_PASV_PORT_MIN,
+        pasv_max: process.env.FTP_SRV_PASV_PORT_MIN,
+        greeting: ['Welcome', 'to', 'IotMonitoring', 'Server'],
+        whitelist: ['ABOR', 'DELE', 'LIST', 'PASS', 'PASV', 'PORT', 'PWD', 'QUIT', 'RETR', 'STOR', 'TYPE', 'USER']
       });
   
     // Evento de loggeo
     server.on('login', ({ connection, username, password }, resolve, reject) => { 
     
-        /// TODO: Eliminar y cambiar a usuario y pass asignado por proyecto
+        /// TODO: Cambiar a validar un usuario y pass asignado por proyecto
         /// TODO: Agregar habilitacion para carga de datos por ftp en proyecto
         if (username == "gie" && password == "giegie") { 
             console.log(dayTime.getUtcString() + "\x1b[33mFtpServer: Client logged\x1b[0m");
             // Devuelve la carpeta raiz 
-            /// TODO: Agregar subcarpeta por proyecto
-            resolve({root: require('os').homedir()});
-            //resolve({ root: path.join(__dirname, "../" + process.env.FTP_SRV_IMPORT_PATH) }); 
+            /// TODO: Agregar subcarpeta por proyecto como raiz
+            resolve({ root: path.join(__dirname, "../" + process.env.FTP_SRV_IMPORT_PATH) }); 
             // Agrega el handler para manejar las cargas de archivos
             connection.on('STOR', (error, fileName) => { 
                 if (error) { 
                     console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error receiving file ${fileName} | Error -> ${error}\x1b[0m`);
                 } 
+                /// TODO: Llamar a funcion de parseo del archivo
                 console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File received ${fileName}\x1b[0m`);
-             });            
+            });
+            connection.on('RETR', (error, filePath) => { 
+                if (error) { 
+                    console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error retrieving file ${filePath} | Error -> ${error}\x1b[0m`);
+                } 
+                console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File retrieved ${filePath}\x1b[0m`);
+            });             
         } else { 
             reject(new Error('Unable to authenticate with FTP server: bad username or password')); 
             console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Authentication error\x1b[0m`);
