@@ -1,5 +1,6 @@
 const FtpSrv = require('ftp-srv'); 
 const bunyan = require('bunyan'); 
+const path = require('path');
 
 const dayTime = require('../services/daytime')
 
@@ -33,7 +34,7 @@ exports.start = async () => {
             console.log(dayTime.getUtcString() + "\x1b[33mFtpServer: Client logged\x1b[0m");
             // Devuelve la carpeta raiz 
             /// TODO: Agregar subcarpeta por proyecto
-            resolve({ root: process.env.FTP_SRV_IMPORT_PATH }); 
+            resolve({ root: path.join(__dirname, "../" + process.env.FTP_SRV_IMPORT_PATH) }); 
             // Agrega el handler para manejar las cargas de archivos
             connection.on('STOR', (error, fileName) => { 
                 if (error) { 
