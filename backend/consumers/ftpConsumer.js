@@ -3,17 +3,26 @@ const bunyan = require('bunyan');
 const path = require('path');
 
 const dayTime = require('../services/daytime')
+const dns = require('../services/dns')
 
 // Inicia el servicio
 
 exports.start = async () => {  
+
+    // Resuelve la direccion IP externa
+    let pasiveIp;
+    try{
+        pasiveIp = await dns.resolve(process.env.FTP_SRV_PASV_DNS);
+    }catch(err){
+        console.error(err);
+    }
 
     // Crea el servicio
 
     const server = new FtpSrv({
         log: bunyan.createLogger({name: 'test', level: 60}),
         url: 'ftp://0.0.0.0:' + process.env.FTP_SRV_PORT,
-        pasv_url: 'ftp://' + process.env.FTP_SRV_PASV_ADDRESS,
+        pasv_url: 'ftp://' + pasiveIp,
         pasv_min: process.env.FTP_SRV_PASV_PORT_MIN,
         pasv_max: process.env.FTP_SRV_PASV_PORT_MIN,
         greeting: ['Welcome', 'to', 'IotMonitoring', 'Server'],
