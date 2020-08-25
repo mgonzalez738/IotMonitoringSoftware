@@ -26,7 +26,7 @@ exports.start = async () => {
         pasv_min: process.env.FTP_SRV_PASV_PORT_MIN,
         pasv_max: process.env.FTP_SRV_PASV_PORT_MIN,
         greeting: ['Welcome', 'to', 'IotMonitoring', 'Server'],
-        whitelist: ['ABOR', 'DELE', 'LIST', 'PASS', 'PASV', 'PORT', 'PWD', 'QUIT', 'RETR', 'STOR', 'TYPE', 'USER']
+        whitelist: ['ABOR', 'AUTH', 'CWD', 'DELE', 'LIST', 'OPTS', 'PASS', 'PASV', 'PORT', 'PWD', 'QUIT', 'RETR', 'STOR', 'TYPE', 'USER']
       });
   
     // Evento de loggeo
