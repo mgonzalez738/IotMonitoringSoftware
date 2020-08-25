@@ -17,8 +17,6 @@ exports.start = async () => {
         console.error(err);
     }
 
-    console.log(pasiveIp);
-
     // Crea el servicio
 
     const server = new FtpSrv({
