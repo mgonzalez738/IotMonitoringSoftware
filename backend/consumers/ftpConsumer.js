@@ -17,13 +17,20 @@ exports.start = async () => {
         url: url_string,
         //greeting: ["Hola"],
         pasv_url: pasv_url_string,
-        log: bunyan.createLogger({ 
-                name: 'quiet-logger', 
-                level: 60})
+        log: bunyan.createLogger({name: 'test', level: 'trace'}),
     }
 
     // Crea el servicio
-    const server = new FtpSrv(options); 
+    //const server = new FtpSrv(options); 
+
+    const server = new FtpSrv({
+        log: bunyan.createLogger({name: 'test', level: 'trace'}),
+        url: 'ftp://127.0.0.1:8880',
+        pasv_url: '192.168.80.50',
+        pasv_min: 8881,
+        greeting: ['Welcome', 'to', 'the', 'jungle!'],
+        file_format: 'ep',
+      });
   
     // Evento de loggeo
     server.on('login', ({ connection, username, password }, resolve, reject) => { 
@@ -34,7 +41,8 @@ exports.start = async () => {
             console.log(dayTime.getUtcString() + "\x1b[33mFtpServer: Client logged\x1b[0m");
             // Devuelve la carpeta raiz 
             /// TODO: Agregar subcarpeta por proyecto
-            resolve({ root: path.join(__dirname, "../" + process.env.FTP_SRV_IMPORT_PATH) }); 
+            resolve({root: require('os').homedir()});
+            //resolve({ root: path.join(__dirname, "../" + process.env.FTP_SRV_IMPORT_PATH) }); 
             // Agrega el handler para manejar las cargas de archivos
             connection.on('STOR', (error, fileName) => { 
                 if (error) { 
