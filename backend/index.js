@@ -37,6 +37,27 @@ retryWrites: false
 .then(() => console.log('Connection to CosmosDB successful'))
 .catch((err) => console.error(err));
 */
+
+const { SensorVwsgPipe3, SensorVwsgPipe3ConfigCsLogger, SensorVwsgPipe3ConfigIotAzure } = require("./models/sensorVwsgPipe3");
+
+let config1 = new SensorVwsgPipe3ConfigCsLogger();
+let config2 = new SensorVwsgPipe3ConfigIotAzure();
+
+config1.save();
+config2.save();
+
+let sensor1 = new SensorVwsgPipe3();
+sensor1._id = mongoose.Types.ObjectId().toHexString();
+sensor1.configuration.push(config1);
+sensor1 = sensor1.save();
+
+
+let sensor2 = new SensorVwsgPipe3();
+sensor2._id = mongoose.Types.ObjectId().toHexString();
+sensor2.configuration.push(config2);
+sensor2 = sensor2.save();
+
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
