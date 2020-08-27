@@ -58,11 +58,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\IotMonitoringSoftware\\gateway\\CommonLibrary\\CommonLibrary.csproj",
+      "projectUniqueName": "d:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj",
       "projectName": "CommonLibrary",
-      "projectPath": "D:\\IotMonitoringSoftware\\gateway\\CommonLibrary\\CommonLibrary.csproj",
+      "projectPath": "d:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj",
       "packagesPath": "C:\\Users\\Tincho\\.nuget\\packages\\",
-      "outputPath": "D:\\IotMonitoringSoftware\\gateway\\CommonLibrary\\obj\\",
+      "outputPath": "d:\\IotMonitoringSoftware\\gateway\\common-library\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Microsoft\\Xamarin\\NuGet\\"

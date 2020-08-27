@@ -1,61 +1,54 @@
 require('dotenv').config();
-
-const listenPort = process.env.PORT;
-
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-
-const errorHandler = require("./middleware/errorHandler");
-const gatewayRoutes = require('./routes/gatewayRoute');
-
-const iotHubEventConsumer = require('./consumers/iotHubEventConsumer');
-
-const ftpServer = require('./consumers/ftpConsumer');
 
 const dayTime = require('./services/daytime')
 
+const database = require('./database/mongo');
+const iotHubEventConsumer = require('./consumers/iotHubEventConsumer');
+const ftpServer = require('./consumers/ftpConsumer');
 
-mongoose.connect('mongodb://localhost/IotMonitoring', {
-    useUnifiedTopology: true,
-    useNewUrlParser: true,
-}).then(() => console.log('Connection to local MongoDB successful')).catch(err => {
-    console.log(`DB Connection Error: ${err.message}`);
-});
+const gatewayRoutes = require('./routes/gatewayRoute');
+const errorHandler = require("./middleware/errorHandler");
+
+const listenPort = process.env.PORT;
+
+// Inicia servicios
+
+database.connect();
+iotHubEventConsumer.suscribe();
+ftpServer.start();
+
+const mongoose = require('mongoose');
+const { SensorVwsgPipe3Config, SensorVwsgPipe3ConfigCampbell, SensorVwsgPipe3ConfigAzure } = require("./models/sensorVwsgPipe3Model");
+
 /*
-mongoose.connect("mongodb://"+process.env.COSMO_DB_HOST+":"+process.env.COSMO_DB_PORT+"/"+process.env.COSMO_DB_NAME+"?ssl=true&replicaSet=globaldb", {
-  auth: {
-    user: process.env.COSMO_DB_USER,
-    password: process.env.COSMO_DB_PASSWORD
-  },
-useNewUrlParser: true,
-useUnifiedTopology: true,
-retryWrites: false
-})
-.then(() => console.log('Connection to CosmosDB successful'))
-.catch((err) => console.error(err));
-*/
-
-const { SensorVwsgPipe3, SensorVwsgPipe3ConfigCsLogger, SensorVwsgPipe3ConfigIotAzure } = require("./models/sensorVwsgPipe3");
-
-let config1 = new SensorVwsgPipe3ConfigCsLogger();
-let config2 = new SensorVwsgPipe3ConfigIotAzure();
-
+let config1 = new SensorVwsgPipe3ConfigCampbell();
+config1._id = mongoose.Types.ObjectId().toHexString();
 config1.save();
+let config2 = new SensorVwsgPipe3ConfigAzure();
+config2._id = mongoose.Types.ObjectId().toHexString();
 config2.save();
-
+*/
+/*
 let sensor1 = new SensorVwsgPipe3();
 sensor1._id = mongoose.Types.ObjectId().toHexString();
+sensor1.GatewayId = mongoose.Types.ObjectId().toHexString();
+sensor1.configuration.push(config1);
 sensor1.configuration.push(config1);
 sensor1 = sensor1.save();
 
-
 let sensor2 = new SensorVwsgPipe3();
 sensor2._id = mongoose.Types.ObjectId().toHexString();
+sensor2.GatewayId = mongoose.Types.ObjectId().toHexString();
+sensor2.configuration.push(config2);
 sensor2.configuration.push(config2);
 sensor2 = sensor2.save();
+*/
+
+
 
 
 const app = express();
@@ -71,9 +64,7 @@ app.use("/api/gateways", gatewayRoutes);
 
 app.use(errorHandler);
 
-iotHubEventConsumer.suscribe();
 
-ftpServer.start();
 
 // Start Server
 app.listen(listenPort, () => {

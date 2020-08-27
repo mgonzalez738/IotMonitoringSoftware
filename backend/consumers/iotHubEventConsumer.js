@@ -2,6 +2,8 @@ const { EventHubConsumerClient } = require("@azure/event-hubs");
 const gatewayDataController = require('../controllers/gatewayDataController');
 var mongoose = require('mongoose');
 
+const dayTime = require('../services/daytime')
+
 const consumerClient = new EventHubConsumerClient(process.env.IOT_HUB_EVENT_CONSUMER_GROUP, process.env.IOT_HUB_EVENT_ENDPOINT);
 const iotHubName = process.env.IOT_HUB_HOST.slice(0, process.env.IOT_HUB_HOST.indexOf("."));
 
@@ -85,4 +87,5 @@ exports.suscribe = () => {
         processEvents: processMessages,
         processError: printError,
     });
+    console.log(dayTime.getUtcString() + "\x1b[33mEventHubEndpoint: Start listening hub " + iotHubName + "\x1b[0m");
 }

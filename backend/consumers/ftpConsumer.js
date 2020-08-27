@@ -5,6 +5,8 @@ const path = require('path');
 const dayTime = require('../services/daytime')
 const dns = require('../services/dns')
 
+const VwsgPipe3Model = require("../models/sensorVwsgPipe3Model");
+
 // Inicia el servicio
 
 exports.start = async () => {  
@@ -44,8 +46,9 @@ exports.start = async () => {
                 if (error) { 
                     console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error receiving file ${fileName} | Error -> ${error}\x1b[0m`);
                 } 
-                /// TODO: Llamar a funcion de parseo del archivo
                 console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File received ${fileName}\x1b[0m`);
+                // Parsea el archivo recibido
+                parseFile(fileName);
             });
             connection.on('RETR', (error, filePath) => { 
                 if (error) { 
@@ -80,3 +83,11 @@ exports.start = async () => {
         }, 
     }; 
 }; 
+
+async function parseFile(file) {
+    
+    // Obtiene los sensores VwsgPipe3 de loggers Campbell Scientific con solo la ultima configuracion
+    var sensorsVwsgPipe3 = await VwsgPipe3Model.GetSensorsWithLastConfigOnly(process.env.DEVICE_DISC_CAMPBELL, null);
+    console.log(sensorsVwsgPipe3);
+
+};
