@@ -26,6 +26,7 @@ exports.Sensor = mongoose.model('SensorVwsgPipe3', SensorSchema, 'SensorVwsgPipe
 const ConfigSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     Date: { type: Date, default: Date.now() },
+    Timezone: { type: Number },
     InitStrains: [Number],
     InitTemps: [Number] 
 },

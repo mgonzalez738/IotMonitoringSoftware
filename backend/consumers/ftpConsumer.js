@@ -4,7 +4,9 @@ const path = require('path');
 const csv = require('csv-parser')
 const fs = require('fs')
 const moment = require('moment');
-const { isText, isBinary, getEncoding } = require('istextorbinary');
+const { isText } = require('istextorbinary');
+const mongoose = require('mongoose');
+const numeral = require('numeral');
 
 const dayTime = require('../services/daytime')
 const dns = require('../services/dns')
@@ -130,12 +132,28 @@ function deleteFile(file) {
 async function LoadDataVwsgPipe3(fileName, parsedData) {  
     
     // Obtiene los sensores VwsgPipe3 de loggers Campbell Scientific con solo la ultima configuracion
-    var sensorsVwsgPipe3 = await VwsgPipe3Model.GetSensorsWithLastConfigOnly(process.env.DEVICE_DISC_CAMPBELL, null);
+    var sensors = await VwsgPipe3Model.GetSensorsWithLastConfigOnly(process.env.DEVICE_DISC_CAMPBELL, null);
         
     // Verifica si coincide con la configuracion de alguno de los sensores
-    for (i = 0; i < sensorsVwsgPipe3.length; i++) { 
-        if(sensorsVwsgPipe3[i].Configuration[0].DataSourceFile == fileName )
-            console.log('Match');
+    for (i = 0; i < sensors.length; i++) { 
+        if(sensors[i].Configuration[0].DataSourceFile == fileName )
+        {
+            for(j = 0; j < parsedData.length; j++)
+            {
+                // Carga los dados del sensor
+                let data = new VwsgPipe3Model.DataCampbell();
+                data._id = mongoose.Types.ObjectId().toHexString();
+                data.SensorId = sensors[i]._id;
+                data.Date = moment(parsedData[j][0]+numeral(sensors[i].Configuration[0].Timezone).format('+00'), moment.ISO_8601)
+                data.Strains.push(parsedData[j][sensors[i].Configuration[0].DataSourceStrainCols[0]]);
+                data.Strains.push(parsedData[j][sensors[i].Configuration[0].DataSourceStrainCols[1]]);
+                data.Strains.push(parsedData[j][sensors[i].Configuration[0].DataSourceStrainCols[2]]);
+                data.Temps.push(parsedData[j][sensors[i].Configuration[0].DataSourceTempCols[0]]);
+                data.Temps.push(parsedData[j][sensors[i].Configuration[0].DataSourceTempCols[1]]);
+                data.Temps.push(parsedData[j][sensors[i].Configuration[0].DataSourceTempCols[2]]);
+                await data.save();
+            }
+        }
     }
 }
 
