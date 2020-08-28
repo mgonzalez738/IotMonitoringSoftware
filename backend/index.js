@@ -22,29 +22,29 @@ iotHubEventConsumer.suscribe();
 ftpServer.start();
 
 const mongoose = require('mongoose');
-const { SensorVwsgPipe3Config, SensorVwsgPipe3ConfigCampbell, SensorVwsgPipe3ConfigAzure } = require("./models/sensorVwsgPipe3Model");
+const VwsgPipe3Model = require("./models/sensorVwsgPipe3Model");
 
 /*
-let config1 = new SensorVwsgPipe3ConfigCampbell();
+let config1 = new VwsgPipe3Model.ConfigCampbell();
 config1._id = mongoose.Types.ObjectId().toHexString();
 config1.save();
-let config2 = new SensorVwsgPipe3ConfigAzure();
+let config2 = new VwsgPipe3Model.ConfigAzure();
 config2._id = mongoose.Types.ObjectId().toHexString();
 config2.save();
-*/
-/*
-let sensor1 = new SensorVwsgPipe3();
+
+
+let sensor1 = new VwsgPipe3Model.Sensor()
 sensor1._id = mongoose.Types.ObjectId().toHexString();
 sensor1.GatewayId = mongoose.Types.ObjectId().toHexString();
-sensor1.configuration.push(config1);
-sensor1.configuration.push(config1);
+sensor1.Configuration.push(config1);
+sensor1.Configuration.push(config1);
 sensor1 = sensor1.save();
 
-let sensor2 = new SensorVwsgPipe3();
+let sensor2 = new VwsgPipe3Model.Sensor()
 sensor2._id = mongoose.Types.ObjectId().toHexString();
 sensor2.GatewayId = mongoose.Types.ObjectId().toHexString();
-sensor2.configuration.push(config2);
-sensor2.configuration.push(config2);
+sensor2.Configuration.push(config2);
+sensor2.Configuration.push(config2);
 sensor2 = sensor2.save();
 */
 

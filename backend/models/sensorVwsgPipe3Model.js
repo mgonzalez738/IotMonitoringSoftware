@@ -2,8 +2,6 @@ const mongoose = require('mongoose');
 
 const dayTime = require('../services/daytime')
 
-//mongoose.set('useCreateIndex', true);
-
 const Schema = mongoose.Schema;
 
 // DISCRIMINADOR
@@ -13,18 +11,19 @@ const options = { discriminatorKey: 'Type' };
 // ESQUEMA SENSOR VWSG PIPE3
 
 // Esquema unico
-const SensorVwsgPipe3Schema = new Schema({ 
+const SensorSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     GatewayId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    configuration: [Schema.Types.Mixed] 
+    Configuration: [Schema.Types.Mixed] 
 });
 
-exports.Sensor = mongoose.model('SensorVwsgPipe3', SensorVwsgPipe3Schema, 'SensorVwsgPipe3');
+const SensorModule = mongoose.model('SensorVwsgPipe3', SensorSchema, 'SensorVwsgPipe3');
+exports.Sensor = mongoose.model('SensorVwsgPipe3', SensorSchema, 'SensorVwsgPipe3');
 
 // CONFIGURACION SENSOR VWSG PIPE3
 
 // Esquema base
-const SensorVwsgPipe3ConfigSchema = new Schema({ 
+const ConfigSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     Date: { type: Date, default: Date.now() },
     InitStrains: [Number],
@@ -34,27 +33,27 @@ const SensorVwsgPipe3ConfigSchema = new Schema({
 );
 
 // Esquema adicional para tipo Capbell Scientific Logger
-const SensorVwsgPipe3ConfigCampbellSchema = new Schema({ 
+const ConfigCampbellSchema = new Schema({ 
         DataSourceFile: { type: String },
         DataSourceStrainCols: [Number],
         DataSourceTempCols: [Number]
 });
 
 // Esquema adicional para  tipo Azure IoT Device
-const SensorVwsgPipe3ConfigAzureSchema = new Schema({ 
+const ConfigAzureSchema = new Schema({ 
         
 });
 
 // Exporta los modelos de configuraciones
-const ConfigModule = mongoose.model('SensorVwsgPipe3Config', SensorVwsgPipe3ConfigSchema, 'SensorVwsgPipe3Config');
-exports.Config = mongoose.model('SensorVwsgPipe3Config', SensorVwsgPipe3ConfigSchema, 'SensorVwsgPipe3Config');
-exports.ConfigCampbell = ConfigModule.discriminator('SensorVwsgPipe3ConfigCampbell', SensorVwsgPipe3ConfigCampbellSchema, process.env.DEVICE_DISC_CAMPBELL);
-exports.ConfigAzure = ConfigModule.discriminator('SensorVwsgPipe3ConfigAzure', SensorVwsgPipe3ConfigAzureSchema, process.env.DEVICE_DISC_AZURE);
+const ConfigModule = mongoose.model('ConfigVwsgPipe3', ConfigSchema, 'ConfigVwsgPipe3');
+exports.Config = mongoose.model('ConfigVwsgPipe3', ConfigSchema, 'ConfigVwsgPipe3');
+exports.ConfigCampbell = ConfigModule.discriminator('ConfigVwsgPipe3Campbell', ConfigCampbellSchema, process.env.DEVICE_DISC_CAMPBELL);
+exports.ConfigAzure = ConfigModule.discriminator('ConfigVwsgPipe3Azure', ConfigAzureSchema, process.env.DEVICE_DISC_AZURE);
 
 // DATOS SENSOR VWSG PIPE3
 
 // Esquema base
-const SensorVwsgPipe3DataSchema = new Schema({ 
+const DataSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     SensorId: { type: mongoose.Schema.Types.ObjectId, required: true },
     Date: { type: Date, default: Date.now() },
@@ -65,20 +64,20 @@ const SensorVwsgPipe3DataSchema = new Schema({
 );
 
 // Esquema adicional para tipo Capbell Scientific Logger
-const SensorVwsgPipe3DataCampbellSchema = new Schema({ 
+const DataCampbellSchema = new Schema({ 
         
 });
 
 // Esquema adicional para  tipo Azure IoT Device
-const SensorVwsgPipe3DataAzureSchema = new Schema({ 
+const DataAzureSchema = new Schema({ 
         
 });
 
 // Exporta los modelos de datos
-const SensorVwsgPipe3DataModule = mongoose.model('SensorVwsgPipe3Data', SensorVwsgPipe3DataSchema, 'SensorVwsgPipe3Data');
-exports.Data = mongoose.model('SensorVwsgPipe3Data', SensorVwsgPipe3DataSchema, 'SensorVwsgPipe3Data');
-exports.DataCampbell = SensorVwsgPipe3DataModule.discriminator('SensorVwsgPipe3DataCampbell', SensorVwsgPipe3DataCampbellSchema, process.env.DEVICE_DISC_CAMPBELL);
-exports.DataAzure = SensorVwsgPipe3DataModule.discriminator('SensorVwsgPipe3DataAzure', SensorVwsgPipe3DataAzureSchema, process.env.DEVICE_DISC_AZURE);
+const DataModule = mongoose.model('DataVwsgPipe3', DataSchema, 'DataVwsgPipe3');
+exports.Data = mongoose.model('DataVwsgPipe3', DataSchema, 'DataVwsgPipe3');
+exports.DataCampbell = DataModule.discriminator('DataVwsgPipe3Campbell', DataCampbellSchema, process.env.DEVICE_DISC_CAMPBELL);
+exports.DataAzure = DataModule.discriminator('DataVwsgPipe3Azure', DataAzureSchema, process.env.DEVICE_DISC_AZURE);
 
 // FUNCIONES
 
@@ -100,8 +99,8 @@ exports.GetSensorsWithLastConfigOnly = async (sensorType, sensorObjectId) => {
         // Etapa : Set Obtiene el documento con solo el elemento mas nuevo del array de configuracion
         var set = { 
             $set: {
-                'configuration': [{
-                    $arrayElemAt: [ '$configuration', { $indexOfArray: [ '$configuration.Date', { $max:'$configuration.Date' } ] } ]
+                'Configuration': [{
+                    $arrayElemAt: [ '$Configuration', { $indexOfArray: [ '$Configuration.Date', { $max:'$Configuration.Date' } ] } ]
                 }]
             }
         }
@@ -111,12 +110,12 @@ exports.GetSensorsWithLastConfigOnly = async (sensorType, sensorObjectId) => {
         var match2 = { $match : { $and: [ ] } };
         if(sensorType != null)
         {
-            match2.$match.$and.push({'configuration.Type': sensorType});
+            match2.$match.$and.push({'Configuration.Type': sensorType});
             aggregationArray.push(match2);
         }
 
         // Ejecuta la Query
-        const sensors = await  SensorVwsgPipe3.aggregate(aggregationArray);
+        const sensors = await  SensorModule.aggregate(aggregationArray);
         return sensors;
 
     } catch (error) {

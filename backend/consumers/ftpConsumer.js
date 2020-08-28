@@ -1,6 +1,10 @@
 const FtpSrv = require('ftp-srv'); 
 const bunyan = require('bunyan'); 
 const path = require('path');
+const csv = require('csv-parser')
+const fs = require('fs')
+const moment = require('moment');
+const { isText, isBinary, getEncoding } = require('istextorbinary');
 
 const dayTime = require('../services/daytime')
 const dns = require('../services/dns')
@@ -37,24 +41,24 @@ exports.start = async () => {
         /// TODO: Cambiar a validar un usuario y pass asignado por proyecto
         /// TODO: Agregar habilitacion para carga de datos por ftp en proyecto
         if (username == "gie" && password == "giegie") { 
-            console.log(dayTime.getUtcString() + "\x1b[33mFtpServer: Client logged\x1b[0m");
+            //console.log(dayTime.getUtcString() + "\x1b[33mFtpServer: Client logged\x1b[0m");
             // Devuelve la carpeta raiz 
             /// TODO: Agregar subcarpeta por proyecto como raiz
             resolve({ root: path.join(__dirname, "../" + process.env.FTP_SRV_IMPORT_PATH) }); 
             // Agrega el handler para manejar las cargas de archivos
-            connection.on('STOR', (error, fileName) => { 
+            connection.on('STOR', (error, filePath) => { 
                 if (error) { 
-                    console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error receiving file ${fileName} | Error -> ${error}\x1b[0m`);
+                    console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error receiving file ${path.basename(filePath)} | Error -> ${error}\x1b[0m`);
                 } 
-                console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File received ${fileName}\x1b[0m`);
+                console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File received ${path.basename(filePath)}\x1b[0m`);
                 // Parsea el archivo recibido
-                parseFile(fileName);
+                parseFile(filePath);
             });
             connection.on('RETR', (error, filePath) => { 
                 if (error) { 
-                    console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error retrieving file ${filePath} | Error -> ${error}\x1b[0m`);
+                    console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error retrieving file ${path.basename(filePath)} | Error -> ${error}\x1b[0m`);
                 } 
-                console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File retrieved ${filePath}\x1b[0m`);
+                console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File retrieved ${path.basename(filePath)}\x1b[0m`);
             });             
         } else { 
             reject(new Error('Unable to authenticate with FTP server: bad username or password')); 
@@ -84,10 +88,55 @@ exports.start = async () => {
     }; 
 }; 
 
-async function parseFile(file) {
+function parseFile(file) {
+    
+    // Verifica que el archivo recibido sea de texto
+    const fileBuffer = fs.readFileSync(file);
+    if(isText(file, fileBuffer))
+    {
+        // Parsea el archivo
+        const results = [];
+        fs.createReadStream(file).pipe(csv({ headers: false }))
+            .on('data', (data) => {
+                // Verifica que el primer valor sea una fecha valida
+                if(moment(data[0], moment.ISO_8601).isValid())
+                    results.push(data);
+            })
+            .on('end', () => {
+                // Carga los datos en sensores VwsgPipe3
+                LoadDataVwsgPipe3(path.basename(file), results);
+                console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File parsed ${path.basename(file)} -> ${results.length} valid entries\x1b[0m`); 
+                deleteFile(file);
+            });
+    }
+    else {
+        console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Parsing omitted -> ${path.basename(file)} is not a text file\x1b[0m`); 
+        deleteFile(file);
+    }
+    
+};
+
+function deleteFile(file) {
+    // Elimina el archivo
+    fs.unlink(file, (error) => {
+        if (error) {
+            console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error deleting file ${path.basename(file)} | Error -> ${error}\x1b[0m`); 
+        return
+        }
+        console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File deleted ${path.basename(file)}\x1b[0m`); 
+    });
+}
+
+async function LoadDataVwsgPipe3(fileName, parsedData) {  
     
     // Obtiene los sensores VwsgPipe3 de loggers Campbell Scientific con solo la ultima configuracion
     var sensorsVwsgPipe3 = await VwsgPipe3Model.GetSensorsWithLastConfigOnly(process.env.DEVICE_DISC_CAMPBELL, null);
-    console.log(sensorsVwsgPipe3);
+        
+    // Verifica si coincide con la configuracion de alguno de los sensores
+    for (i = 0; i < sensorsVwsgPipe3.length; i++) { 
+        if(sensorsVwsgPipe3[i].Configuration[0].DataSourceFile == fileName )
+            console.log('Match');
+    }
+}
 
-};
+
