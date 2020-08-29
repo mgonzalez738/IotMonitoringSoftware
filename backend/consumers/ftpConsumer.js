@@ -5,13 +5,11 @@ const csv = require('csv-parser')
 const fs = require('fs')
 const moment = require('moment');
 const { isText } = require('istextorbinary');
-const mongoose = require('mongoose');
-const numeral = require('numeral');
 
 const dayTime = require('../services/daytime')
 const dns = require('../services/dns')
 
-const VwsgPipe3Model = require("../models/sensorVwsgPipe3Model");
+const VwsgPipe3 = require("../models/sensorVwsgPipe3Model");
 
 // Inicia el servicio
 
@@ -52,7 +50,7 @@ exports.start = async () => {
                 if (error) { 
                     console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error receiving file ${path.basename(filePath)} | Error -> ${error}\x1b[0m`);
                 } 
-                console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File received ${path.basename(filePath)}\x1b[0m`);
+                console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File received | ${path.basename(filePath)}\x1b[0m`);
                 // Parsea el archivo recibido
                 parseFile(filePath);
             });
@@ -106,8 +104,8 @@ function parseFile(file) {
             })
             .on('end', () => {
                 // Carga los datos en sensores VwsgPipe3
-                LoadDataVwsgPipe3(path.basename(file), results);
-                console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File parsed ${path.basename(file)} -> ${results.length} valid entries\x1b[0m`); 
+                VwsgPipe3.LoadFromParsedData(process.env.DEVICE_DISC_CAMPBELL, path.basename(file), results);
+                console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File parsed | ${path.basename(file)} -> ${results.length} valid entries\x1b[0m`); 
                 deleteFile(file);
             });
     }
@@ -125,36 +123,10 @@ function deleteFile(file) {
             console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error deleting file ${path.basename(file)} | Error -> ${error}\x1b[0m`); 
         return
         }
-        console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File deleted ${path.basename(file)}\x1b[0m`); 
+        console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File deleted | ${path.basename(file)}\x1b[0m`); 
     });
 }
 
-async function LoadDataVwsgPipe3(fileName, parsedData) {  
-    
-    // Obtiene los sensores VwsgPipe3 de loggers Campbell Scientific con solo la ultima configuracion
-    var sensors = await VwsgPipe3Model.GetSensorsWithLastConfigOnly(process.env.DEVICE_DISC_CAMPBELL, null);
-        
-    // Verifica si coincide con la configuracion de alguno de los sensores
-    for (i = 0; i < sensors.length; i++) { 
-        if(sensors[i].Configuration[0].DataSourceFile == fileName )
-        {
-            for(j = 0; j < parsedData.length; j++)
-            {
-                // Carga los dados del sensor
-                let data = new VwsgPipe3Model.DataCampbell();
-                data._id = mongoose.Types.ObjectId().toHexString();
-                data.SensorId = sensors[i]._id;
-                data.Date = moment(parsedData[j][0]+numeral(sensors[i].Configuration[0].Timezone).format('+00'), moment.ISO_8601)
-                data.Strains.push(parsedData[j][sensors[i].Configuration[0].DataSourceStrainCols[0]]);
-                data.Strains.push(parsedData[j][sensors[i].Configuration[0].DataSourceStrainCols[1]]);
-                data.Strains.push(parsedData[j][sensors[i].Configuration[0].DataSourceStrainCols[2]]);
-                data.Temps.push(parsedData[j][sensors[i].Configuration[0].DataSourceTempCols[0]]);
-                data.Temps.push(parsedData[j][sensors[i].Configuration[0].DataSourceTempCols[1]]);
-                data.Temps.push(parsedData[j][sensors[i].Configuration[0].DataSourceTempCols[2]]);
-                await data.save();
-            }
-        }
-    }
-}
+
 
 

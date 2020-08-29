@@ -11,6 +11,8 @@ const iotHubEventConsumer = require('./consumers/iotHubEventConsumer');
 const ftpServer = require('./consumers/ftpConsumer');
 
 const gatewayRoutes = require('./routes/gatewayRoute');
+const sensorVwsgPipe3Routes = require('./routes/sensorVwsgPipe3Routes');
+
 const errorHandler = require("./middleware/errorHandler");
 
 const listenPort = process.env.PORT;
@@ -48,9 +50,6 @@ sensor2.Configuration.push(config2);
 sensor2 = sensor2.save();
 */
 
-
-
-
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -60,7 +59,11 @@ app.get('/', function (req, res) {
   res.send('Hello from Gie IotMonitoring Api')
 });
 
+// Rutas Gateways
 app.use("/api/gateways", gatewayRoutes);
+
+// Rutas Sensores
+app.use("/api/sensors/vwsgPipe3", sensorVwsgPipe3Routes);
 
 app.use(errorHandler);
 
