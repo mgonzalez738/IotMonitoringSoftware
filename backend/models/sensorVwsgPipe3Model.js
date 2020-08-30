@@ -225,6 +225,9 @@ const AddCalculatedData = async (sensorId, sensorData) => {
         else
         {
             sensorData[i].StrainsDelta = CalcRelativeStrains(sensorConfigs[0].Configuration[confIndex], sensorData[i]);
+            sensorData[i].StrainAxial = CalcAxialStrain(sensorData[i].StrainsDelta);
+            sensorData[i].StrainBending = CalcBendingStrain(sensorData[i].StrainsDelta);  
+            sensorData[i].AngleBending = CalcBendingAngle(sensorData[i].StrainsDelta);
         }
         
     }
@@ -233,7 +236,56 @@ const AddCalculatedData = async (sensorId, sensorData) => {
 exports.AddCalculatedData = AddCalculatedData;
 
 const CalcRelativeStrains = (conf, data) => {
-    return [10,10,10]
 
+    strains = [];
+ 
+    // Sin corrección de temperaura
+    if(!conf.TempCorrEnable)
+    {
+        strains[0] = data.Strains[0] - conf.InitStrains[0];
+        strains[1] = data.Strains[1] - conf.InitStrains[1];
+        strains[2] = data.Strains[2] - conf.InitStrains[2];
+    }
 
+    // Con corrección de temperaura
+    else 
+    {   // Con restriccion a la expansion axial de la tuberia
+        if(!conf.TempCorrFreeExpan)
+        {
+            strains[0] = data.Strains[0] - conf.InitStrains[0] + conf.TeCoeffVwsg * (data.Temps[0] - conf.InitTemps[0]);
+            strains[1] = data.Strains[1] - conf.InitStrains[1] + conf.TeCoeffVwsg * (data.Temps[1] - conf.InitTemps[1]);
+            strains[2] = data.Strains[2] - conf.InitStrains[2] + conf.TeCoeffVwsg * (data.Temps[2] - conf.InitTemps[2]);
+        }
+        // Sin restriccion a la expansion axial de la tuberia
+        else if(!conf.TempCorrFreeExpan)
+        {
+            strains[0] = data.Strains[0] - conf.InitStrains[0] + (conf.TeCoeffVwsg - conf.TeCoeffPipe) * (data.Temps[0] - conf.InitTemps[0]);
+            strains[1] = data.Strains[1] - conf.InitStrains[1] + (conf.TeCoeffVwsg - conf.TeCoeffPipe) * (data.Temps[1] - conf.InitTemps[1]);
+            strains[2] = data.Strains[2] - conf.InitStrains[2] + (conf.TeCoeffVwsg - conf.TeCoeffPipe) * (data.Temps[2] - conf.InitTemps[2]);
+        }
+    }
+
+    return strains
+}
+
+const CalcAxialStrain = (strains) => {
+
+    strain = (strains[0] + strains[1] + strains[2]) / 3;
+
+    return strain;
+}
+
+const CalcBendingStrain = (strains) => {
+
+    strain = 2 / 3 *Math.sqrt( Math.pow(strains[0],2) + Math.pow(strains[1],2) + Math.pow(strains[2],2) 
+                               - strains[0]*strains[1] - strains[0]*strains[2] - strains[1]*strains[2]);
+
+    return strain;
+}
+
+const CalcBendingAngle = (strains) => {
+
+    angle = Math.atan(Math.sqrt(3) * (strains[1] - strains[2]) / (2 * strains[0] - strains[1] - strains[2])) * 180 / Math.PI + 180;
+
+    return angle;
 }
