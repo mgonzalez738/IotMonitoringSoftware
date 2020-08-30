@@ -67,7 +67,7 @@ exports.ConfigAzure = ConfigAzure;
 const DataSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     SensorId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    Date: { type: Date, default: Date.now() },
+    Date: { type: Date, index: { unique: true }, default: Date.now() },
     Strains: [Number],
     Temps: [Number] 
 },
