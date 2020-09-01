@@ -15,6 +15,7 @@ const options = { discriminatorKey: 'Type' };
 // Esquema unico
 const SensorSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+    Tag: { type: String, required: true, index: { unique: true } },
     GatewayId: { type: mongoose.Schema.Types.ObjectId, required: true },
     Configuration: [Schema.Types.Mixed] 
 });
@@ -28,10 +29,11 @@ exports.Sensor = Sensor;
 // Esquema base
 const ConfigSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
-    Date: { type: Date, default: Date.now() },
+    Date: { type: Date, default: Date.now(), index: { unique: true }  },
     InitStrains: { type: Array, default: [0.0, 0.0, 0.0] },
     InitTemps: { type: Array, default: [0.0, 0.0, 0.0] },
-    TempCorrEnable: { type: Boolean, required: true },
+    TempSensorCount: { type: Number, default: 3 },
+    TempCorrEnable: { type: Boolean, default: false },
     TempCorrFreeExpan: { type: Boolean, default: false },
     TempSensorsCount: { type: Number, default: 3 },
     TeCoeffPipe: { type: Number, default: 12.0 }, // uStrain/°C
@@ -42,10 +44,10 @@ const ConfigSchema = new Schema({
 
 // Esquema adicional para tipo Capbell Scientific Logger
 const ConfigCampbellSchema = new Schema({ 
-        DataSourceFileName: { type: String },
-        DataSourceStrainCols: [Number],
-        DataSourceTempCols: [Number],
-        DataSourceTimezone: { type: Number },
+    DataSourceFileName: { type: String, default: "" },
+    DataSourceStrainCols: { type: Array, default: [null, null, null] },
+    DataSourceTempCols: { type: Array, default: [null, null, null]  },
+    DataSourceTimezone: { type: Number, default: 0 },
 });
 
 // Esquema adicional para  tipo Azure IoT Device
@@ -67,9 +69,9 @@ exports.ConfigAzure = ConfigAzure;
 const DataSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     SensorId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    Date: { type: Date, index: { unique: true }, default: Date.now() },
-    Strains: [Number],
-    Temps: [Number] 
+    Date: { type: Date, index: { unique: true }},
+    Strains: { type: Array, default: [null, null, null] },
+    Temps: { type: Array, default: [null, null, null] }
 },
     options
 );
@@ -220,7 +222,7 @@ const AddCalculatedData = async (sensorId, sensorData) => {
             sensorData[i].StrainAxial = NaN;  
             sensorData[i].StrainBending = NaN;    
             sensorData[i].AngleBending = NaN;   
-            sensorData[i].Error = "Could not find valid configuration for calculations"
+            sensorData[i].Error = "Could not find a valid configuration for calculations. Check data and sensor configurations dates."
         }
         else
         {
@@ -236,56 +238,59 @@ const AddCalculatedData = async (sensorId, sensorData) => {
 exports.AddCalculatedData = AddCalculatedData;
 
 const CalcRelativeStrains = (conf, data) => {
-
     strains = [];
- 
+
     // Sin corrección de temperaura
-    if(!conf.TempCorrEnable)
-    {
+    if(!conf.TempCorrEnable) {
         strains[0] = data.Strains[0] - conf.InitStrains[0];
         strains[1] = data.Strains[1] - conf.InitStrains[1];
         strains[2] = data.Strains[2] - conf.InitStrains[2];
     }
 
     // Con corrección de temperaura
-    else 
-    {   // Con restriccion a la expansion axial de la tuberia
+    else {   
+        var deltaTemp0, deltaTemp1, deltaTemp2;
+
+        // Cantidad de sensores de temperatura
+        deltaTemp0 = data.Temps[0] - conf.InitTemps[0];
+        if(conf.TempSensorCount == 1) {
+            deltaTemp1 = data.Temps[0] - conf.InitTemps[0];
+            deltaTemp2 = data.Temps[0] - conf.InitTemps[0];
+        } else if (conf.TempSensorCount == 3) {
+            deltaTemp1 = data.Temps[1] - conf.InitTemps[1];
+            deltaTemp2 = data.Temps[2] - conf.InitTemps[2];
+        }
+
+        // Con restriccion a la expansion axial de la tuberia
         if(!conf.TempCorrFreeExpan)
         {
-            strains[0] = data.Strains[0] - conf.InitStrains[0] + conf.TeCoeffVwsg * (data.Temps[0] - conf.InitTemps[0]);
-            strains[1] = data.Strains[1] - conf.InitStrains[1] + conf.TeCoeffVwsg * (data.Temps[1] - conf.InitTemps[1]);
-            strains[2] = data.Strains[2] - conf.InitStrains[2] + conf.TeCoeffVwsg * (data.Temps[2] - conf.InitTemps[2]);
+            strains[0] = data.Strains[0] - conf.InitStrains[0] + conf.TeCoeffVwsg * deltaTemp0;
+            strains[1] = data.Strains[1] - conf.InitStrains[1] + conf.TeCoeffVwsg * deltaTemp1;
+            strains[2] = data.Strains[2] - conf.InitStrains[2] + conf.TeCoeffVwsg * deltaTemp2;
         }
         // Sin restriccion a la expansion axial de la tuberia
         else if(!conf.TempCorrFreeExpan)
         {
-            strains[0] = data.Strains[0] - conf.InitStrains[0] + (conf.TeCoeffVwsg - conf.TeCoeffPipe) * (data.Temps[0] - conf.InitTemps[0]);
-            strains[1] = data.Strains[1] - conf.InitStrains[1] + (conf.TeCoeffVwsg - conf.TeCoeffPipe) * (data.Temps[1] - conf.InitTemps[1]);
-            strains[2] = data.Strains[2] - conf.InitStrains[2] + (conf.TeCoeffVwsg - conf.TeCoeffPipe) * (data.Temps[2] - conf.InitTemps[2]);
+            strains[0] = data.Strains[0] - conf.InitStrains[0] + (conf.TeCoeffVwsg - conf.TeCoeffPipe) * deltaTemp0;
+            strains[1] = data.Strains[1] - conf.InitStrains[1] + (conf.TeCoeffVwsg - conf.TeCoeffPipe) * deltaTemp1;
+            strains[2] = data.Strains[2] - conf.InitStrains[2] + (conf.TeCoeffVwsg - conf.TeCoeffPipe) * deltaTemp2;
         }
     }
-
     return strains
 }
 
 const CalcAxialStrain = (strains) => {
-
     strain = (strains[0] + strains[1] + strains[2]) / 3;
-
     return strain;
 }
 
 const CalcBendingStrain = (strains) => {
-
     strain = 2 / 3 *Math.sqrt( Math.pow(strains[0],2) + Math.pow(strains[1],2) + Math.pow(strains[2],2) 
                                - strains[0]*strains[1] - strains[0]*strains[2] - strains[1]*strains[2]);
-
     return strain;
 }
 
 const CalcBendingAngle = (strains) => {
-
     angle = Math.atan(Math.sqrt(3) * (strains[1] - strains[2]) / (2 * strains[0] - strains[1] - strains[2])) * 180 / Math.PI + 180;
-
     return angle;
 }

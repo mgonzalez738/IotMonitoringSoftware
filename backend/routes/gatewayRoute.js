@@ -2,16 +2,16 @@ const express = require('express');
 const router = express.Router();
 const gatewayController = require('../controllers/gatewayController');
 const gatewayDataController = require('../controllers/gatewayDataController');
-const {queryFromIsISO8601, queryToIsISO8601, parameterGatewayIdIsMongoId, parameterDataIdIsMongoId, bodyIsAggregationStageArray} = require('../validations/gatewayDataValidators');
-const {bodyUtcTimeIsISO8601, bodyPowerVoltageIsFloat, bodySensedVoltageIsFloat, bodyBatteryVoltageIsFloat, bodyTemperatureIsFloat} = require('../validations/gatewayDataValidators');
+const {queryFromDateIsISO8601, queryToDateIsISO8601, paramGatewayIdIsMongoId, paramDataIdIsMongoId, bodyIsAggregationStageArray} = require('../validations/commonValidators');
+const {bodyUtcTimeIsISO8601, bodyPowerVoltageIsFloat, bodySensedVoltageIsFloat, bodyBatteryVoltageIsFloat, bodyTemperatureIsFloat} = require('../validations/commonValidators');
 
 // Datos Gateway
 
 router.get(
     '/data/',
     [
-        queryFromIsISO8601,
-        queryToIsISO8601,
+        queryFromDateIsISO8601,
+        queryToDateIsISO8601,
         bodyIsAggregationStageArray
     ], 
     gatewayDataController.indexAllGw
@@ -20,9 +20,9 @@ router.get(
 router.get(
     '/:gwId/data/',
     [
-        parameterGatewayIdIsMongoId,
-        queryFromIsISO8601,
-        queryToIsISO8601,
+        paramGatewayIdIsMongoId,
+        queryFromDateIsISO8601,
+        queryToDateIsISO8601,
         bodyIsAggregationStageArray
     ], 
     gatewayDataController.indexOneGw
@@ -31,8 +31,8 @@ router.get(
 router.get(
     '/:gwId/data/:dataId',
     [
-        parameterGatewayIdIsMongoId,
-        parameterDataIdIsMongoId
+        paramGatewayIdIsMongoId,
+        paramDataIdIsMongoId
     ],
     gatewayDataController.show
 );
@@ -40,7 +40,7 @@ router.get(
 router.post(
     '/:gwId/data/', 
     [
-        parameterGatewayIdIsMongoId,
+        paramGatewayIdIsMongoId,
         bodyUtcTimeIsISO8601,
         bodyPowerVoltageIsFloat,
         bodySensedVoltageIsFloat,
@@ -53,8 +53,8 @@ router.post(
 router.delete(
     '/:gwId/data/:dataId', 
     [
-        parameterGatewayIdIsMongoId,
-        parameterDataIdIsMongoId
+        paramGatewayIdIsMongoId,
+        paramDataIdIsMongoId
     ],
     gatewayDataController.destroy
 );
@@ -62,8 +62,8 @@ router.delete(
 router.put(
     '/:gwId/data/:dataId', 
     [
-        parameterGatewayIdIsMongoId,
-        parameterDataIdIsMongoId,
+        paramGatewayIdIsMongoId,
+        paramDataIdIsMongoId,
         bodyUtcTimeIsISO8601,
         bodyPowerVoltageIsFloat,
         bodySensedVoltageIsFloat,
@@ -83,7 +83,7 @@ router.get(
 router.get(
     '/:gwId', 
     [
-        parameterGatewayIdIsMongoId
+        paramGatewayIdIsMongoId
     ],
     gatewayController.show
 );
@@ -96,7 +96,7 @@ router.post(
 router.delete(
     '/:gwId', 
     [
-        parameterGatewayIdIsMongoId
+        paramGatewayIdIsMongoId
     ],
     gatewayController.destroy
 );
