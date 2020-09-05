@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {paramSensorIdIsMongoId, paramDataIdIsMongoId} = require('../validations/commonValidators');
 const {queryFromDateIsISO8601, queryToDateIsISO8601, querySkipIsInt, queryLimitIsInt, querySortCustom} = require('../validations/commonValidators');
+const {bodyConfigurationCustom} = require('../validations/sensorVwsgPipe3Validators');
 
 const SensorController = require('../controllers/sensorVwsgPipe3Controller');
 
@@ -38,7 +39,7 @@ router.get('/',
 
 // Nuevo sensor
 router.post('/',
-    [ ],
+    [ bodyConfigurationCustom ],
     SensorController.storeSensor
 );
 

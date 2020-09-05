@@ -3,6 +3,7 @@ var mongoose = require('mongoose');
 const dayTime = require('../services/daytime');
 const validationHandler = require('../validations/validationHandler');
 const VwsgPipe3 = require('../models/sensorVwsgPipe3Model');
+const { body } = require('express-validator');
 
 exports.indexSensor = async (req, res, next) => {
     
@@ -124,45 +125,63 @@ exports.storeSensor = async (req, res, next) => {
         return;
     }
     
-    console.log(logMessage + '\x1b[0m');
-   
-    
-
-
-                /*
-            Date: { type: Date, default: Date.now(), index: { unique: true }  },
-    InitStrains: { type: Array, default: [0.0, 0.0, 0.0] },
-    InitTemps: { type: Array, default: [0.0, 0.0, 0.0] },
-    TempSensorCount: { type: Number, default: 3 },
-    TempCorrEnable: { type: Boolean, default: false },
-    TempCorrFreeExpan: { type: Boolean, default: false },
-    TempSensorsCount: { type: Number, default: 3 },
-    TeCoeffPipe: { type: Number, default: 12.0 }, // uStrain/°C
-    TeCoeffVwsg: { type: Number, default: 10.8 }, // uStrain/°C*/
-    
+    console.log(logMessage + '\x1b[0m');   
 
     try {
-        let sensor = new VwsgPipe3.Sensor();
+/*        let sensor = new VwsgPipe3.Sensor();
         sensor._id = new mongoose.Types.ObjectId(req.body._id);
-        sensor.Tag = req.body.Tag;
+        sensor.Tags.Name = req.body.Tags.Name;
         sensor.GatewayId = new mongoose.Types.ObjectId(req.body.GatewayId);
 
-        // Crea las configuraciones
+        // Crea las configuraciones con los valores recibidos o default si no estan definidos
         for(i = 0; i<req.body.Configuration.length; i++) {
             if(req.body.Configuration[i].Type == process.env.DEVICE_DISC_CAMPBELL) {
-                var config = new VwsgPipe3.ConfigCampbell()
-                config._id = new mongoose.Types.ObjectId();
-                if(req.body.Configuration[i].Date !== undefined) 
-                    config.Date = req.body.Configuration[i].Date;
-                if(req.body.Configuration[i].InitStrains !== undefined) 
-                    config.InitStrains = req.body.Configuration[i].InitStrains;
-                if(req.body.Configuration[i].InitStrains !== undefined) 
-                    config.InitStrains = req.body.Configuration[i].InitStrains;
+                // Crea la configuracion Campbell
+                var config = new VwsgPipe3.ConfigCampbell();
+                // Carga los parametros especificos Campbell
+                if(req.body.Configuration[i].DataSourceFileName !== undefined) 
+                    config.DataSourceFileName = req.body.Configuration[i].DataSourceFileName;
+                if(req.body.Configuration[i].DataSourceStrainCols !== undefined) 
+                    config.DataSourceStrainCols = req.body.Configuration[i].DataSourceStrainCols;
+                if(req.body.Configuration[i].DataSourceTempCols !== undefined) 
+                    config.DataSourceTempCols = req.body.Configuration[i].DataSourceTempCols;
+                if(req.body.Configuration[i].DataSourceTimezone!== undefined) 
+                    config.DataSourceTimezone = req.body.Configuration[i].DataSourceTimezone;
             }
+            if(req.body.Configuration[i].Type == process.env.DEVICE_DISC_AZURE) {
+                // Crea la configuracion Azure
+                var config = new VwsgPipe3.ConfigAzure();
+                // Carga los parametros especificos Azure
+            }
+            // Carga los parametros comunes
+            config._id = new mongoose.Types.ObjectId();
+            if(req.body.Configuration[i].Date !== undefined) 
+                config.Date = req.body.Configuration[i].Date;
+            if(req.body.Configuration[i].InitStrains !== undefined) 
+                config.InitStrains = req.body.Configuration[i].InitStrains;
+            if(req.body.Configuration[i].InitTemps !== undefined) 
+                config.InitTemps = req.body.Configuration[i].InitTemps;
+            if(req.body.Configuration[i].InitTemps !== undefined) 
+                config.InitTemps = req.body.Configuration[i].InitTemps;
+            if(req.body.Configuration[i].TempSensorsCount !== undefined) 
+                config.TempSensorsCount = req.body.Configuration[i].TempSensorsCount;
+            if(req.body.Configuration[i].TempCorrEnable !== undefined) 
+                config.TempCorrEnable = req.body.Configuration[i].TempCorrEnable;
+            if(req.body.Configuration[i].TempCorrFreeExpan !== undefined) 
+                config.TempCorrFreeExpan = req.body.Configuration[i].TempCorrFreeExpan;
+            if(req.body.Configuration[i].TeCoeffPipe !== undefined) 
+                config.TeCoeffPipe = req.body.Configuration[i].TeCoeffPipe;
+                if(req.body.Configuration[i].TeCoeffVwsg !== undefined) 
+                config.TeCoeffVwsg = req.body.Configuration[i].TeCoeffVwsg;      
+            // Guarda al configuracion
             sensor.Configuration.push(config);
-        }
+        }*/
 
-        sensor = await sensor.save();
+        //sensor = await sensor.save();
+
+        req.body._id = new mongoose.Types.ObjectId(req.body._id);
+        sensor = await VwsgPipe3.Sensor.create(req.body);
+
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Stored 1 document\x1b[0m`);   
         res.send(sensor);
     } catch (error) {
@@ -189,7 +208,6 @@ exports.indexData = async (req, res, next) => {
     console.log(logMessage + '\x1b[0m');
 
     try {
-
         // Etapa comun: Match Filtra por SensorId y fechas si estan definidas
         var stageCommon = { $match : { $and: [ ] }};
         stageCommon.$match.$and.push({ SensorId: new mongoose.Types.ObjectId(req.params.sensorId) });

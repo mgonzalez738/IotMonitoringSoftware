@@ -1,0 +1,50 @@
+Public PTemp, Power
+Public Strain(3), Temperature(3)
+Public rT(9)
+
+'FTP Variables
+Public FTPSuccess As Boolean
+Public OutStat As Boolean
+Public LastFile As String * 100
+
+'Server' FTP Details
+Const IPAddress = "192.168.80.50:8880"
+Const User = "gie"
+Const Password = "giegie"
+Const FileName = "/TestCampbell.dat"
+
+DataTable (TestCampbell,1,4)
+	TableFile ("USR:TestCampbell",8,0,0,60,Min,OutStat,LastFile)
+	Sample (1,Power(),FP2)
+	Sample (1,PTemp(),FP2)
+	Sample (3,Strain(),IEEE4)
+	Sample (3,Temperature(),IEEE4)
+EndTable
+
+BeginProg
+
+  SetStatus ("USRDriveSize",113292)
+  RealTime(rT())
+  Randomize( rT(1)+rT(2)+rT(3)+rT(4)+rT(5)+rT(6))
+  
+  Scan (15,Min,0,0)
+  
+    PanelTemp (PTemp,250)
+		Battery (Power)
+    Strain(1) = INT((410 - 390 + 1) * RND + 390)
+    Strain(2) = INT((510 - 490 + 1) * RND + 490)
+    Strain(3) = INT((610 - 590 + 1) * RND + 590)
+    Temperature(1) = INT((41 - 39 + 1) * RND + 39)
+    Temperature(2) = INT((51 - 49 + 1) * RND + 49)
+    Temperature(3) = INT((61 - 59 + 1) * RND + 59)
+    CallTable TestCampbell
+    
+    If OutStat = true Then
+      FTPSuccess = FTPClient (IPAddress,User,Password,LastFile,FileName,0)
+		  OutStat = false
+    EndIf
+
+  NextScan
+
+EndProg
+

@@ -3,33 +3,18 @@ const numeral = require('numeral');
 const moment = require('moment');
 
 const dayTime = require('../services/daytime')
+const { TagsSchema } = require('../models/tagsModel');
 
 const Schema = mongoose.Schema;
 
-// DISCRIMINADOR
+// DISCRIMINADOR DE TIPOS
 
-const options = { discriminatorKey: 'Type' };
+const discriminator = { discriminatorKey: 'Type' };
 
-// ESQUEMA SENSOR VWSG PIPE3
+// CONFIGURACION BASE SENSOR VWSG PIPE3
 
-// Esquema unico
-const SensorSchema = new Schema({ 
-    _id: { type: mongoose.Schema.Types.ObjectId, required: true },
-    Tag: { type: String, required: true, index: { unique: true } },
-    GatewayId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    Configuration: [Schema.Types.Mixed] 
-});
-
-// Exporta el modelo de sensor
-const Sensor = mongoose.model('SensorVwsgPipe3', SensorSchema, 'SensorVwsgPipe3');
-exports.Sensor = Sensor;
-
-// CONFIGURACION SENSOR VWSG PIPE3
-
-// Esquema base
 const ConfigSchema = new Schema({ 
-    _id: { type: mongoose.Schema.Types.ObjectId, required: true },
-    Date: { type: Date, default: Date.now(), index: { unique: true }  },
+    Date: { type: Date, default: Date.now() },
     InitStrains: { type: Array, default: [0.0, 0.0, 0.0] },
     InitTemps: { type: Array, default: [0.0, 0.0, 0.0] },
     TempSensorCount: { type: Number, default: 3 },
@@ -39,29 +24,35 @@ const ConfigSchema = new Schema({
     TeCoeffPipe: { type: Number, default: 12.0 }, // uStrain/°C
     TeCoeffVwsg: { type: Number, default: 10.8 }, // uStrain/°C
 },
-    options
+    discriminator
 );
 
-// Esquema adicional para tipo Capbell Scientific Logger
-const ConfigCampbellSchema = new Schema({ 
+// ESQUEMA SENSOR VWSG PIPE3
+
+// Esquema base
+const SensorSchema = new Schema({ 
+    _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+    Tags: TagsSchema,
+    Configurations: [ConfigSchema] 
+});
+SensorSchema.index({"Tags.Name": 1}, {unique: true});
+
+// Esquema adicional de configuracion para tipo Capbell Logger 
+SensorSchema.path('Configurations').discriminator(process.env.DEVICE_DISC_CAMPBELL, new Schema({
     DataSourceFileName: { type: String, default: "" },
     DataSourceStrainCols: { type: Array, default: [null, null, null] },
     DataSourceTempCols: { type: Array, default: [null, null, null]  },
     DataSourceTimezone: { type: Number, default: 0 },
-});
+}, { _id: false }));
 
-// Esquema adicional para  tipo Azure IoT Device
-const ConfigAzureSchema = new Schema({ 
-        
-});
+// Esquema adicional de configuracion para tipo Azure IoT
+SensorSchema.path('Configurations').discriminator(process.env.DEVICE_DISC_AZURE, new Schema({
 
-// Exporta los modelos de configuraciones de sensor
-const Config = mongoose.model('ConfigVwsgPipe3', ConfigSchema, 'ConfigVwsgPipe3');
-exports.Config = Config;
-const ConfigCampbell = Config.discriminator('ConfigVwsgPipe3Campbell', ConfigCampbellSchema, process.env.DEVICE_DISC_CAMPBELL);
-exports.ConfigCampbell = ConfigCampbell;
-const ConfigAzure = Config.discriminator('ConfigVwsgPipe3Azure', ConfigAzureSchema, process.env.DEVICE_DISC_AZURE);
-exports.ConfigAzure = ConfigAzure;
+}, { _id: false }));
+
+// Exporta el modelo de sensor
+const Sensor = mongoose.model('SensorVwsgPipe3', SensorSchema, 'SensorVwsgPipe3');
+exports.Sensor = Sensor;
 
 // DATOS SENSOR VWSG PIPE3
 
@@ -70,10 +61,10 @@ const DataSchema = new Schema({
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     SensorId: { type: mongoose.Schema.Types.ObjectId, required: true },
     Date: { type: Date, index: { unique: true }},
-    Strains: { type: Array, default: [null, null, null] },
-    Temps: { type: Array, default: [null, null, null] }
+    Strains: { type: Array, default: [] },
+    Temps: { type: Array, default: [] }
 },
-    options
+    discriminator
 );
 
 // Esquema adicional para tipo Capbell Scientific Logger
@@ -88,11 +79,9 @@ const DataAzureSchema = new Schema({
 
 // Exporta los modelos de datos de sensor
 const Data = mongoose.model('DataVwsgPipe3', DataSchema, 'DataVwsgPipe3');
+Data.discriminator('DataVwsgPipe3Campbell', DataCampbellSchema, process.env.DEVICE_DISC_CAMPBELL);
+Data.discriminator('DataVwsgPipe3Azure', DataAzureSchema, process.env.DEVICE_DISC_AZURE);
 exports.Data = Data;
-const DataCampbell = Data.discriminator('DataVwsgPipe3Campbell', DataCampbellSchema, process.env.DEVICE_DISC_CAMPBELL);
-exports.DataCampbell = DataCampbell;
-const DataAzure = Data.discriminator('DataVwsgPipe3Azure', DataAzureSchema, process.env.DEVICE_DISC_AZURE);
-exports.DataAzure = DataAzure;
 
 // FUNCIONES
 
@@ -108,7 +97,7 @@ const GetSensorConfig = async (sensorObjectId = undefined, lastOnly = false, sen
 
         // Etapa : Project Devuelve solo el id de sensor y las configuraciones
         var project = { 
-            $project: { 'Configuration': 1 }
+            $project: { 'Configurations': 1 }
         }
         aggregationArray.push(project);
         
@@ -117,8 +106,8 @@ const GetSensorConfig = async (sensorObjectId = undefined, lastOnly = false, sen
         {
             var set = { 
                 $set: {
-                    'Configuration': [{
-                        $arrayElemAt: [ '$Configuration', { $indexOfArray: [ '$Configuration.Date', { $max:'$Configuration.Date' } ] } ]
+                    'Configurations': [{
+                        $arrayElemAt: [ '$Configurations', { $indexOfArray: [ '$Configurations.Date', { $max:'$Configurations.Date' } ] } ]
                     }]
                 }
             }
@@ -128,9 +117,9 @@ const GetSensorConfig = async (sensorObjectId = undefined, lastOnly = false, sen
         // Etapa : Ordena las configuraciones por fecha (Mas antigua primero)
         if(!lastOnly)
         {
-            var sort1 =  { $unwind: "$Configuration" };
-            var sort2 =  { $sort: { "Configuration.Date": 1 } };
-            var sort3 =  { $group: { _id: "$_id", "Configuration": { "$push" : "$Configuration" } } };
+            var sort1 =  { $unwind: "$Configurations" };
+            var sort2 =  { $sort: { "Configurations.Date": 1 } };
+            var sort3 =  { $group: { _id: "$_id", "Configurations": { "$push" : "$Configurations" } } };
             aggregationArray.push(sort1);
             aggregationArray.push(sort2);
             aggregationArray.push(sort3);
@@ -142,7 +131,7 @@ const GetSensorConfig = async (sensorObjectId = undefined, lastOnly = false, sen
             var match2 = { $match : { $and: [ ] } };
             if(sensorType != null)
             {
-                match2.$match.$and.push({'Configuration.Type': sensorType});
+                match2.$match.$and.push({'Configurations.Type': sensorType});
                 aggregationArray.push(match2);
             }
         }
@@ -170,24 +159,25 @@ const LoadFromParsedData = async (sensorType, fileName, parsedData) => {
             
             // Verifica si coincide con la configuracion de alguno de los sensores
             for (i = 0; i < sensorsConf.length; i++) { 
-                if(sensorsConf[i].Configuration[0].DataSourceFile == fileName )
-                {
+                if(sensorsConf[i].Configurations[0].DataSourceFileName == fileName )
+                { 
                     for(j = 0; j < parsedData.length; j++)
                     {
                         // Carga los dados del sensor y guarda
-                        let data = new DataCampbell();
+                        let data = new Data();
                         data._id = mongoose.Types.ObjectId().toHexString();
+                        data.Type = process.env.DEVICE_DISC_CAMPBELL;
                         data.SensorId = sensorsConf[i]._id;
-                        data.Date = moment(parsedData[j][0]+numeral(sensorsConf[i].Configuration[0].DataSourceTimezone).format('+00'), moment.ISO_8601)
-                        data.Strains.push(parsedData[j][sensorsConf[i].Configuration[0].DataSourceStrainCols[0]]);
-                        data.Strains.push(parsedData[j][sensorsConf[i].Configuration[0].DataSourceStrainCols[1]]);
-                        data.Strains.push(parsedData[j][sensorsConf[i].Configuration[0].DataSourceStrainCols[2]]);
-                        data.Temps.push(parsedData[j][sensorsConf[i].Configuration[0].DataSourceTempCols[0]]);
-                        data.Temps.push(parsedData[j][sensorsConf[i].Configuration[0].DataSourceTempCols[1]]);
-                        data.Temps.push(parsedData[j][sensorsConf[i].Configuration[0].DataSourceTempCols[2]]);
+                        data.Date = moment(parsedData[j][0]+numeral(sensorsConf[i].Configurations[0].DataSourceTimezone).format('+00'), moment.ISO_8601)
+                        data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[0]]);
+                        data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[1]]);
+                        data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[2]]);
+                        data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[0]]);
+                        data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[1]]);
+                        data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[2]]);
                         await data.save();
                     }
-                    console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${DataCampbell.collection.collectionName} | Inserted ${parsedData.length} documents\x1b[0m`); 
+                    console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${Data.collection.collectionName} | Inserted ${parsedData.length} documents\x1b[0m`); 
         
                 }
             }
@@ -208,9 +198,9 @@ const AddCalculatedData = async (sensorId, sensorData) => {
 
         // Obtiene la configuracion a aplicar segun la fecha de los datos
         confIndex = -1;
-        for(j=0; j<sensorConfigs[0].Configuration.length; j++)
+        for(j=0; j<sensorConfigs[0].Configurations.length; j++)
         {
-            if(sensorData[i].Date > sensorConfigs[0].Configuration[j].Date)
+            if(sensorData[i].Date > sensorConfigs[0].Configurations[j].Date)
                 confIndex = j;
             else
                 break;
@@ -226,7 +216,7 @@ const AddCalculatedData = async (sensorId, sensorData) => {
         }
         else
         {
-            sensorData[i].StrainsDelta = CalcRelativeStrains(sensorConfigs[0].Configuration[confIndex], sensorData[i]);
+            sensorData[i].StrainsDelta = CalcRelativeStrains(sensorConfigs[0].Configurations[confIndex], sensorData[i]);
             sensorData[i].StrainAxial = CalcAxialStrain(sensorData[i].StrainsDelta);
             sensorData[i].StrainBending = CalcBendingStrain(sensorData[i].StrainsDelta);  
             sensorData[i].AngleBending = CalcBendingAngle(sensorData[i].StrainsDelta);
