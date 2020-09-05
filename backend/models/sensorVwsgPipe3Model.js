@@ -104,14 +104,14 @@ const GetSensorConfig = async (sensorObjectId = undefined, lastOnly = false, sen
         // Etapa : Set Obtiene el documento con solo el elemento mas nuevo del array de configuracion
         if(lastOnly)
         {
-            var set = { 
-                $set: {
+            var addFields = { 
+                $addFields: {
                     'Configurations': [{
                         $arrayElemAt: [ '$Configurations', { $indexOfArray: [ '$Configurations.Date', { $max:'$Configurations.Date' } ] } ]
                     }]
                 }
             }
-            aggregationArray.push(set);
+            aggregationArray.push(addFields);
         }
 
         // Etapa : Ordena las configuraciones por fecha (Mas antigua primero)
