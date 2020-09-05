@@ -148,6 +148,10 @@ exports.GetSensorConfig = GetSensorConfig;
 
 const LoadFromParsedData = async (sensorType, fileName, parsedData) => {  
     
+    console.log("File Name: " + fileName);
+    console.log("Parsed Data: ");
+    console.log(JSON.stringify(parsedData, null, 2));
+
     if((sensorType === undefined) || (fileName === undefined) || (parsedData === undefined))
         throw new Error('Parameters could not be undefined.')
 
@@ -157,6 +161,9 @@ const LoadFromParsedData = async (sensorType, fileName, parsedData) => {
             // Obtiene los sensores VwsgPipe3 de loggers Campbell Scientific con solo la ultima configuracion
             var sensorsConf = await GetSensorConfig(null, true, process.env.DEVICE_DISC_CAMPBELL);
             
+            console.log("Sensor Configuration: ");
+            console.log(JSON.stringify(sensorsConf, null, 2));
+
             // Verifica si coincide con la configuracion de alguno de los sensores
             for (i = 0; i < sensorsConf.length; i++) { 
                 if(sensorsConf[i].Configurations[0].DataSourceFileName == fileName )
