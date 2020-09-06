@@ -119,13 +119,13 @@ function parseFile(file) {
 
 function deleteFile(file) {
     // Elimina el archivo
-/*    fs.unlink(file, (error) => {
+    fs.unlink(file, (error) => {
         if (error) {
             console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: Error deleting file ${path.basename(file)} | Error -> ${error}\x1b[0m`); 
         return
         }
         console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File deleted | ${path.basename(file)}\x1b[0m`); 
-    });*/
+    });
 }
 
 
