@@ -178,7 +178,6 @@ const LoadFromParsedData = async (sensorType, fileName, parsedData) => {
                         await data.save();
                     }
                     console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${Data.collection.collectionName} | Inserted ${parsedData.length} documents\x1b[0m`); 
-        
                 }
             }
         } catch (error) {
