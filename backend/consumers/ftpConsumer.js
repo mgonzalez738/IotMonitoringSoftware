@@ -10,6 +10,7 @@ const dayTime = require('../services/daytime')
 const dns = require('../services/dns')
 
 const VwsgPipe3 = require("../models/sensorVwsgPipe3Model");
+const { ConnectionType } = require('../configs/types');
 
 // Inicia el servicio
 

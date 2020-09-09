@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const numeral = require('numeral');
 const moment = require('moment');
 
-const dayTime = require('../services/daytime')
+const dayTime = require('../services/daytime');
 const { TagsSchema } = require('../models/tagsModel');
-const { ConnectionType } = require('../configs/types')
+const { ConnectionType } = require('../configs/types');
 
 const Schema = mongoose.Schema;
 
@@ -61,10 +61,11 @@ exports.Sensor = Sensor;
 const DataSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     SensorId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    Date: { type: Date, required: true, unique: true },
+    Date: { type: Date, required: true },
     Strains: { type: Array, default: [] },
     Temps: { type: Array, default: [] }
 });
+DataSchema.index({ SensorId: 1, Date: 1 }, { unique: true })
 
 // Exporta los modelos de datos de sensor
 const Data = mongoose.model('DataVwsgPipe3', DataSchema, 'DataVwsgPipe3');
@@ -118,7 +119,7 @@ const GetSensorConfig = async (sensorObjectId = undefined, lastOnly = false, sen
             var match2 = { $match : { $and: [ ] } };
             if(sensorType != null)
             {
-                match2.$match.$and.push({'Configurations.Type': sensorType});
+                match2.$match.$and.push({'Configurations.ConnectionType': sensorType});
                 aggregationArray.push(match2);
             }
         }
@@ -138,36 +139,39 @@ const LoadFromParsedData = async (sensorType, fileName, parsedData) => {
     if((sensorType === undefined) || (fileName === undefined) || (parsedData === undefined))
         throw new Error('Parameters could not be undefined.')
 
-    if(sensorType == ConnectionType.Campbell)
+    if(sensorType === ConnectionType.Campbell)
     {
         try {
             // Obtiene los sensores VwsgPipe3 de loggers Campbell Scientific con solo la ultima configuracion
             var sensorsConf = await GetSensorConfig(null, true, ConnectionType.Campbell);
-
             // Verifica si coincide con la configuracion de alguno de los sensores
             for (i = 0; i < sensorsConf.length; i++) { 
-                if(sensorsConf[i].Configurations[0].DataSourceFileName == fileName )
+                 if(sensorsConf[i].Configurations[0].DataSourceFileName == fileName )
                 { 
                     for(j = 0; j < parsedData.length; j++)
                     {
-                        // Carga los dados del sensor y guarda
-                        let data = new Data();
-                        data._id = mongoose.Types.ObjectId().toHexString();
-                        data.SensorId = sensorsConf[i]._id;
-                        data.Date = moment(parsedData[j][0]+numeral(sensorsConf[i].Configurations[0].DataSourceTimezone).format('+00'), moment.ISO_8601)
-                        data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[0]]);
-                        data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[1]]);
-                        data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[2]]);
-                        data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[0]]);
-                        data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[1]]);
-                        data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[2]]);
-                        await data.save();
+                        try {
+                            // Carga los dados del sensor y guarda
+                            let data = new Data();
+                            data._id = mongoose.Types.ObjectId().toHexString();
+                            data.SensorId = sensorsConf[i]._id;
+                            data.Date = moment(parsedData[j][0]+numeral(sensorsConf[i].Configurations[0].DataSourceTimezone).format('+00'), moment.ISO_8601)
+                            data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[0]]);
+                            data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[1]]);
+                            data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[2]]);
+                            data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[0]]);
+                            data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[1]]);
+                            data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[2]]);
+                            await data.save();
+                        } catch (error) {
+                            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${Data.collection.collectionName} | Error inserting entry ${j} -> ${error}\x1b[0m`); 
+                        }
                     }
                     console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${Data.collection.collectionName} | Inserted ${parsedData.length} documents\x1b[0m`); 
                 }
             }
         } catch (error) {
-            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: Error loading data from ${ConnectionType.Campbell} parsed file -> ${error}\x1b[0m`); 
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${Data.collection.collectionName} | Error loading data from ${ConnectionType.Campbell} parsed file -> ${error}\x1b[0m`); 
         }
     }
 }
