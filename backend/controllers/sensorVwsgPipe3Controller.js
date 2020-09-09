@@ -3,7 +3,8 @@ var mongoose = require('mongoose');
 const dayTime = require('../services/daytime');
 const validationHandler = require('../validations/validationHandler');
 const VwsgPipe3 = require('../models/sensorVwsgPipe3Model');
-const { body } = require('express-validator');
+const iotHub = require('../services/azureIotHub');
+const { ConnectionType } = require('../configs/types');
 
 // API SENSOR
 
@@ -113,6 +114,15 @@ exports.storeSensor = async (req, res, next) => {
         return;
     }
     console.log(logMessage + '\x1b[0m');   
+
+    if(req.body.Configurations[0].ConnectionType == ConnectionType.Azure)
+    {
+        try {
+            var con = await iotHub.CreateDevice("Careta10");
+            console.log(con);
+        }
+        catch {}
+    }   
 
     try {
         req.body._id = new mongoose.Types.ObjectId(req.body._id);

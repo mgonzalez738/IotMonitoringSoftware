@@ -3,7 +3,7 @@ const numeral = require('numeral');
 const moment = require('moment');
 
 const dayTime = require('../services/daytime');
-const { TagsSchema } = require('../models/tagsModel');
+const { TagsSchema, CampbellSchema, AzureSchema } = require('./commonModels');
 const { ConnectionType } = require('../configs/types');
 
 const Schema = mongoose.Schema;
@@ -14,7 +14,7 @@ const discriminator = { discriminatorKey: 'ConnectionType' };
 
 // CONFIGURACION BASE SENSOR VWSG PIPE3
 
-const ConfigSchema = new Schema({ 
+const ConfigurationSchema = new Schema({ 
     Date: { type: Date, default: Date.now() },
     InitStrains: { type: Array, default: [0.0, 0.0, 0.0] },
     InitTemps: { type: Array, default: [0.0, 0.0, 0.0] },
@@ -24,9 +24,7 @@ const ConfigSchema = new Schema({
     TempSensorsCount: { type: Number, default: 3 },
     TeCoeffPipe: { type: Number, default: 12.0 }, // uStrain/°C
     TeCoeffVwsg: { type: Number, default: 10.8 }, // uStrain/°C
-},
-    discriminator
-);
+});
 
 // ESQUEMA SENSOR VWSG PIPE3
 
@@ -34,25 +32,14 @@ const ConfigSchema = new Schema({
 const SensorSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     Name: { type: String, required: true, unique: true },
-    Tags: { type: TagsSchema },
-    Configurations: [ConfigSchema] 
-});
-
-// Esquema adicional de configuracion para tipo Capbell Logger 
-SensorSchema.path('Configurations').discriminator(ConnectionType.Campbell, new Schema({
-    DataSourceFileName: { type: String, default: "" },
-    DataSourceStrainCols: { type: Array, default: [null, null, null] },
-    DataSourceTempCols: { type: Array, default: [null, null, null]  },
-    DataSourceTimezone: { type: Number, default: 0 },
-}, { _id: false }));
-
-// Esquema adicional de configuracion para tipo Azure IoT
-SensorSchema.path('Configurations').discriminator(ConnectionType.Azure, new Schema({
-
-}, { _id: false }));
+    Tags: { type: TagsSchema, default: { 'Description':  "Sensor VWSG Pipe 3" }},
+    Configurations: [ ConfigurationSchema ] 
+}, discriminator );
 
 // Exporta el modelo de sensor
 const Sensor = mongoose.model('SensorVwsgPipe3', SensorSchema, 'SensorVwsgPipe3');
+const SensorCampbell = Sensor.discriminator('SensorVwsgPipe3Campbell', new Schema({ Device: {type: CampbellSchema}}), ConnectionType.Campbell);
+const SensorAzure = Sensor.discriminator('SensorVwsgPipe3Azure', new Schema({ Device: {type: AzureSchema}}), ConnectionType.Azure);
 exports.Sensor = Sensor;
 
 // DATOS SENSOR VWSG PIPE3
@@ -73,22 +60,25 @@ exports.Data = Data;
 
 // FUNCIONES
 
-const GetSensorConfig = async (sensorObjectId = undefined, lastOnly = false, sensorType = undefined) => {    
+const GetSensorConfigurations = async (sensorId = undefined, lastOnly = false, connectionType = undefined) => {    
     try {
         var aggregationArray = [];
 
-        // Etapa : Match1 Todos o solo un sensor
-        var match1 = { $match : { } };
-        if(sensorObjectId != null)
-            match1 = { $match : {_id: new mongoose.Types.ObjectId(sensorObjectId)}};
-        aggregationArray.push(match1);
-
+        // Etapa : Match1 sensorId 
+        if(sensorId != null) {
+            let match1 = { $match : {_id: new mongoose.Types.ObjectId(sensorId)}};
+            aggregationArray.push(match1);
+        }
+        // Etapa : Match2 connectionType
+        if(connectionType != null) {
+            let match2 = { $match : {ConnectionType: connectionTyp }};
+            aggregationArray.push(match2);
+        }
         // Etapa : Project Devuelve solo el id de sensor y las configuraciones
         var project = { 
             $project: { 'Configurations': 1 }
         }
-        aggregationArray.push(project);
-        
+        aggregationArray.push(project);   
         // Etapa : Set Obtiene el documento con solo el elemento mas nuevo del array de configuracion
         if(lastOnly)
         {
@@ -101,7 +91,6 @@ const GetSensorConfig = async (sensorObjectId = undefined, lastOnly = false, sen
             }
             aggregationArray.push(addFields);
         }
-
         // Etapa : Ordena las configuraciones por fecha (Mas antigua primero)
         if(!lastOnly)
         {
@@ -112,41 +101,28 @@ const GetSensorConfig = async (sensorObjectId = undefined, lastOnly = false, sen
             aggregationArray.push(sort2);
             aggregationArray.push(sort3);
         }
-
-        // Etapa : Match2 SensorType last configuration
-        if(lastOnly)
-        {
-            var match2 = { $match : { $and: [ ] } };
-            if(sensorType != null)
-            {
-                match2.$match.$and.push({'Configurations.ConnectionType': sensorType});
-                aggregationArray.push(match2);
-            }
-        }
-
         // Ejecuta la Query
         const sensors = await Sensor.aggregate(aggregationArray);
         return sensors;
-
     } catch (error) {
-        console.log(dayTime.getUtcString() + `\x1b[35mDatabase: Error executing function GetLastConfiguration -> ${error}\x1b[0m`); 
+        console.log(dayTime.getUtcString() + `\x1b[35mDatabase: Error executing function GetSensorConfigurations -> ${error}\x1b[0m`); 
     }
 };
-exports.GetSensorConfig = GetSensorConfig;
+exports.GetSensorConfigurations = GetSensorConfigurations;
 
-const LoadFromParsedData = async (sensorType, fileName, parsedData) => {  
+const LoadFromParsedData = async (connectionType, fileName, parsedData) => {  
     
-    if((sensorType === undefined) || (fileName === undefined) || (parsedData === undefined))
+    if((connectionType === undefined) || (fileName === undefined) || (parsedData === undefined))
         throw new Error('Parameters could not be undefined.')
 
-    if(sensorType === ConnectionType.Campbell)
+    if(connectionType === ConnectionType.Campbell)
     {
         try {
-            // Obtiene los sensores VwsgPipe3 de loggers Campbell Scientific con solo la ultima configuracion
-            var sensorsConf = await GetSensorConfig(null, true, ConnectionType.Campbell);
+            // Obtiene los id de sensores Campbell con los datos de archivo
+            var sensors = await Sensor.find( {ConnectionType: ConnectionType.Campbell}, {'Device.DataSource': 1}).lean();
             // Verifica si coincide con la configuracion de alguno de los sensores
-            for (i = 0; i < sensorsConf.length; i++) { 
-                 if(sensorsConf[i].Configurations[0].DataSourceFileName == fileName )
+            for (i = 0; i < sensors.length; i++) { 
+                 if(sensors[i].Device.DataSource.FileName == fileName )
                 { 
                     for(j = 0; j < parsedData.length; j++)
                     {
@@ -154,14 +130,14 @@ const LoadFromParsedData = async (sensorType, fileName, parsedData) => {
                             // Carga los dados del sensor y guarda
                             let data = new Data();
                             data._id = mongoose.Types.ObjectId().toHexString();
-                            data.SensorId = sensorsConf[i]._id;
-                            data.Date = moment(parsedData[j][0]+numeral(sensorsConf[i].Configurations[0].DataSourceTimezone).format('+00'), moment.ISO_8601)
-                            data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[0]]);
-                            data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[1]]);
-                            data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[2]]);
-                            data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[0]]);
-                            data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[1]]);
-                            data.Temps.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceTempCols[2]]);
+                            data.SensorId = sensors[i]._id;
+                            data.Date = moment(parsedData[j][0]+numeral(sensors[i].Device.DataSource.Timezone).format('+00'), moment.ISO_8601)
+                            data.Strains.push(parsedData[j][sensors[i].Device.DataSource.StrainCols[0]]);
+                            data.Strains.push(parsedData[j][sensors[i].Device.DataSource.StrainCols[1]]);
+                            data.Strains.push(parsedData[j][sensors[i].Device.DataSource.StrainCols[2]]);
+                            data.Temps.push(parsedData[j][sensors[i].Device.DataSource.TempCols[0]]);
+                            data.Temps.push(parsedData[j][sensors[i].Device.DataSource.TempCols[1]]);
+                            data.Temps.push(parsedData[j][sensors[i].Device.DataSource.TempCols[2]]);
                             await data.save();
                         } catch (error) {
                             console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${Data.collection.collectionName} | Error inserting entry ${j} -> ${error}\x1b[0m`); 
@@ -180,7 +156,7 @@ exports.LoadFromParsedData = LoadFromParsedData;
 const AddCalculatedData = async (sensorId, sensorData) => {
 
     // Obtiene las configuraciones del sendor
-    var sensorConfigs = await GetSensorConfig(sensorId);
+    var sensorConfigs = await GetSensorConfigurations(sensorId);
 
     // Agrega los datos calculados a cada documento
     for(i=0; i<sensorData.length; i++) {
@@ -219,14 +195,14 @@ exports.AddCalculatedData = AddCalculatedData;
 const CalcRelativeStrains = (conf, data) => {
     strains = [];
 
-    // Sin corrección de temperaura
+    // Sin corrección de temperatura
     if(!conf.TempCorrEnable) {
         strains[0] = data.Strains[0] - conf.InitStrains[0];
         strains[1] = data.Strains[1] - conf.InitStrains[1];
         strains[2] = data.Strains[2] - conf.InitStrains[2];
     }
 
-    // Con corrección de temperaura
+    // Con corrección de temperatura
     else {   
         var deltaTemp0, deltaTemp1, deltaTemp2;
 
