@@ -6,6 +6,8 @@ const VwsgPipe3 = require('../models/sensorVwsgPipe3Model');
 const iotHub = require('../services/azureIotHub');
 const { ConnectionType } = require('../configs/types');
 
+const iotHubName = process.env.IOT_HUB_HOST.slice(0, process.env.IOT_HUB_HOST.indexOf("."));
+
 // API SENSOR
 
 exports.indexSensor = async (req, res, next) => {
@@ -115,23 +117,34 @@ exports.storeSensor = async (req, res, next) => {
     }
     console.log(logMessage + '\x1b[0m');   
 
-    if(req.body.Configurations[0].ConnectionType == ConnectionType.Azure)
+    req.body._id = new mongoose.Types.ObjectId(req.body._id);
+
+    // Si es un sensor Azure lo crea en el IotHub
+    if(req.body.ConnectionType == ConnectionType.Azure)
     {
         try {
-            var con = await iotHub.CreateDevice("Careta10");
-            console.log(con);
+            var connectionString = await iotHub.CreateDevice(req.body._id);
+            req.body.Device = {};
+            console.log(connectionString);
+            req.body.Device.ConnectionString = connectionString;
+            console.log(dayTime.getUtcString() + `\x1b[33mAzureIot: ${iotHubName} | Device created\x1b[0m`); 
         }
-        catch {}
+        catch (error) {
+            next(error);
+            console.log(dayTime.getUtcString() + `\x1b[33mAzureIot: ${iotHubName} | Error creating device -> ${error.message}\x1b[0m`); 
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Document storing omitted\x1b[0m`); 
+            return;
+        }
     }   
 
     try {
-        req.body._id = new mongoose.Types.ObjectId(req.body._id);
         let sensor = await VwsgPipe3.Sensor.create(req.body);
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Stored 1 document\x1b[0m`);   
         res.send(sensor);
     } catch (error) {
-        next(error);
+        // Si era azure borrarlo porque fallo al incluirlo en la base de datos
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error storing document -> ${error.message }\x1b[0m`); 
+        next(error);
     }
 };
 
