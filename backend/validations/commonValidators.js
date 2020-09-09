@@ -44,7 +44,10 @@ exports.querySortCustom = query("sort")
         }
     });
 
+// Body
 
+exports.bodyNameRequired = body("Name")
+    .notEmpty().withMessage("Body key 'Name' must be present, not empty and unique in collection");
 
 
 

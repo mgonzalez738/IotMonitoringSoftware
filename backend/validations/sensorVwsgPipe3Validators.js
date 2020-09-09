@@ -1,3 +1,4 @@
+const { ConnectionType } = require('../configs/types')
 const { body, check} = require('express-validator');
 
 exports.bodyConfigurationCustom = body("Configurations")
@@ -15,9 +16,9 @@ exports.bodyConfigurationCustom = body("Configurations")
 
         // Verifica que todas las configuraciones sean de un tipo valido
         for(i=0; i < value.length; i++) {
-            if ( value[i].Type != process.env.DEVICE_DISC_CAMPBELL && value[i].Type != process.env.DEVICE_DISC_AZURE) 
+            if ( value[i].ConnectionType != ConnectionType.Campbell && value[i].ConnectionType != ConnectionType.Azure) 
             {
-                throw new Error("Every Configuration element must have defined Type as Campbell or Azure");
+                throw new Error("Every Configuration element must have defined ConnectionType as 'Campbell' or 'Azure'");
             }
         }
 

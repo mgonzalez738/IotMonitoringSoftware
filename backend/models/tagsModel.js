@@ -4,7 +4,6 @@ const Schema = mongoose.Schema;
 
 /** Tags schema for all devices and gateways */
 const TagsSchema = new Schema({ 
-    Name: { type: String, required: true },
     Description: { type: String },
     SerialNumber: { type: String },
     Latitude: { type: Number },

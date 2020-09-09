@@ -5,11 +5,12 @@ const validationHandler = require('../validations/validationHandler');
 const VwsgPipe3 = require('../models/sensorVwsgPipe3Model');
 const { body } = require('express-validator');
 
+// API SENSOR
+
 exports.indexSensor = async (req, res, next) => {
     
     var collectionName = VwsgPipe3.Sensor.collection.collectionName; 
-    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Retrieve documents from ${collectionName}`; 
-    
+    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Retrieve documents from ${collectionName}`;    
     try { // Validacion
         validationHandler(req);
     }
@@ -18,36 +19,31 @@ exports.indexSensor = async (req, res, next) => {
         console.log(logMessage + "\x1b[31m -> " + err.message + "\x1b[0m");
         return;
     }
-
     console.log(logMessage + '\x1b[0m');   
     
     try {
         // Etapa comun: Match Filtra por Tag si esta definido
         var stageCommon = { $match : { $and: [ ] }};
-        if(req.query.Tag !== undefined)
-            stageCommon.$match.$and.push({ Tag: req.query.Tag});
+        if(req.query.name !== undefined)
+            stageCommon.$match.$and.push({ Name: req.query.name});
         else
             stageCommon.$match.$and.push({ });
-
-        // Facet 1: Ordena y aplica skip y limit si estan definidos
+        // Facet 1: Ordena por Name y aplica skip y limit si estan definidos
         var facet1Array = [ ];
         if(req.query.sort !== undefined)
-            facet1Array.push({ $sort : { Tag: parseInt(req.query.sort) }});
+            facet1Array.push({ $sort : { Name: parseInt(req.query.sort) }});
         else
-            facet1Array.push({ $sort : { Date: 1 }}); // Asscendente por defecto
+            facet1Array.push({ $sort : { Name: 1 }}); // Asscendente por defecto
         if(req.query.skip !== undefined)
             facet1Array.push({ $skip : parseInt(req.query.skip) });
         if(req.query.limit !== undefined) {
             facet1Array.push({ $limit : parseInt(req.query.limit) });
         }
-        
         // Facet 2: Count
         var facet2Array = [{ $count: "Total" }];
-
         // Ejecuta la Query
         AggregationArray = [ stageCommon, { $facet: { Items: facet1Array, Count: facet2Array }}, { $project: { Items: 1, 'Info.Total': '$Count.Total'}}, { $unwind: '$Info.Total'}];
         var result = await VwsgPipe3.Sensor.aggregate(AggregationArray);
-        
         // Completa la respuesta con informacion de paginacion
         var response = {};
         response.Items = {};
@@ -69,11 +65,9 @@ exports.indexSensor = async (req, res, next) => {
             response.Info.Retrieved = result[0].Items.length;
             response.Info.Total = result[0].Info.Total;
         }      
-        
         // Envia la respuesta
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Retrieved ${response.Info.Retrieved} documents\x1b[0m`);   
         res.send(response);
-
     } catch (error) {
         next(error);
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error retrieving documents -> ${error.message }\x1b[0m`); 
@@ -82,10 +76,8 @@ exports.indexSensor = async (req, res, next) => {
 
 exports.showSensor = async (req, res, next) => {
 
-    var collectionName = VwsgPipe3.Sensor.collection.collectionName;
-    
-    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Retrieve document from ${collectionName}`; 
-    
+    var collectionName = VwsgPipe3.Sensor.collection.collectionName; 
+    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Retrieve document from ${collectionName}`;  
     try { // Validacion
         validationHandler(req);
     }
@@ -94,7 +86,6 @@ exports.showSensor = async (req, res, next) => {
         console.log(logMessage + "\x1b[31m -> " + err.message + "\x1b[0m");
         return;
     }
-
     console.log(logMessage + '\x1b[0m');
    
     try {
@@ -103,7 +94,6 @@ exports.showSensor = async (req, res, next) => {
         // Envia la respuesta
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Retrieved ${result.length} document\x1b[0m`);   
         res.send((result.length > 0) ? result[0] : {});
-
     } catch (error) {
         next(error);
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error retrieving document -> ${error.message }\x1b[0m`); 
@@ -113,9 +103,7 @@ exports.showSensor = async (req, res, next) => {
 exports.storeSensor = async (req, res, next) => {
     
     var collectionName = VwsgPipe3.Sensor.collection.collectionName;
-    
-    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Store document to ${collectionName}`; 
-    
+    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Store document to ${collectionName}`;  
     try { // Validacion
         validationHandler(req);
     }
@@ -124,64 +112,11 @@ exports.storeSensor = async (req, res, next) => {
         console.log(logMessage + "\x1b[31m -> " + err.message + "\x1b[0m");
         return;
     }
-    
     console.log(logMessage + '\x1b[0m');   
 
     try {
-/*        let sensor = new VwsgPipe3.Sensor();
-        sensor._id = new mongoose.Types.ObjectId(req.body._id);
-        sensor.Tags.Name = req.body.Tags.Name;
-        sensor.GatewayId = new mongoose.Types.ObjectId(req.body.GatewayId);
-
-        // Crea las configuraciones con los valores recibidos o default si no estan definidos
-        for(i = 0; i<req.body.Configuration.length; i++) {
-            if(req.body.Configuration[i].Type == process.env.DEVICE_DISC_CAMPBELL) {
-                // Crea la configuracion Campbell
-                var config = new VwsgPipe3.ConfigCampbell();
-                // Carga los parametros especificos Campbell
-                if(req.body.Configuration[i].DataSourceFileName !== undefined) 
-                    config.DataSourceFileName = req.body.Configuration[i].DataSourceFileName;
-                if(req.body.Configuration[i].DataSourceStrainCols !== undefined) 
-                    config.DataSourceStrainCols = req.body.Configuration[i].DataSourceStrainCols;
-                if(req.body.Configuration[i].DataSourceTempCols !== undefined) 
-                    config.DataSourceTempCols = req.body.Configuration[i].DataSourceTempCols;
-                if(req.body.Configuration[i].DataSourceTimezone!== undefined) 
-                    config.DataSourceTimezone = req.body.Configuration[i].DataSourceTimezone;
-            }
-            if(req.body.Configuration[i].Type == process.env.DEVICE_DISC_AZURE) {
-                // Crea la configuracion Azure
-                var config = new VwsgPipe3.ConfigAzure();
-                // Carga los parametros especificos Azure
-            }
-            // Carga los parametros comunes
-            config._id = new mongoose.Types.ObjectId();
-            if(req.body.Configuration[i].Date !== undefined) 
-                config.Date = req.body.Configuration[i].Date;
-            if(req.body.Configuration[i].InitStrains !== undefined) 
-                config.InitStrains = req.body.Configuration[i].InitStrains;
-            if(req.body.Configuration[i].InitTemps !== undefined) 
-                config.InitTemps = req.body.Configuration[i].InitTemps;
-            if(req.body.Configuration[i].InitTemps !== undefined) 
-                config.InitTemps = req.body.Configuration[i].InitTemps;
-            if(req.body.Configuration[i].TempSensorsCount !== undefined) 
-                config.TempSensorsCount = req.body.Configuration[i].TempSensorsCount;
-            if(req.body.Configuration[i].TempCorrEnable !== undefined) 
-                config.TempCorrEnable = req.body.Configuration[i].TempCorrEnable;
-            if(req.body.Configuration[i].TempCorrFreeExpan !== undefined) 
-                config.TempCorrFreeExpan = req.body.Configuration[i].TempCorrFreeExpan;
-            if(req.body.Configuration[i].TeCoeffPipe !== undefined) 
-                config.TeCoeffPipe = req.body.Configuration[i].TeCoeffPipe;
-                if(req.body.Configuration[i].TeCoeffVwsg !== undefined) 
-                config.TeCoeffVwsg = req.body.Configuration[i].TeCoeffVwsg;      
-            // Guarda al configuracion
-            sensor.Configuration.push(config);
-        }*/
-
-        //sensor = await sensor.save();
-
         req.body._id = new mongoose.Types.ObjectId(req.body._id);
-        sensor = await VwsgPipe3.Sensor.create(req.body);
-
+        let sensor = await VwsgPipe3.Sensor.create(req.body);
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Stored 1 document\x1b[0m`);   
         res.send(sensor);
     } catch (error) {
@@ -190,12 +125,10 @@ exports.storeSensor = async (req, res, next) => {
     }
 };
 
-exports.indexData = async (req, res, next) => {
+exports.updateSensor = async (req, res, next) => {
     
-    var collectionName = VwsgPipe3.Data.collection.collectionName; 
-
-    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Retrieve documents from ${collectionName}`;
-    
+    var collectionName = VwsgPipe3.Sensor.collection.collectionName;
+    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Update document from ${collectionName}`;  
     try { // Validacion
         validationHandler(req);
     }
@@ -204,7 +137,77 @@ exports.indexData = async (req, res, next) => {
         console.log(logMessage + "\x1b[31m -> " + err.message + "\x1b[0m");
         return;
     }
+    console.log(logMessage + '\x1b[0m');   
 
+    try {
+        let result = await VwsgPipe3.Sensor.updateOne({ _id: req.params.sensorId }, { $set: req.body } );
+        if(result.n === 0) {
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error updating document -> Not found\x1b[0m`);   
+            const error = new Error( `Sensor _id: ${req.params.sensorId} not found`);
+            error.statusCode = 404;
+            next(error);
+        } else if ( result.nModified === 0) {
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error updating document -> Found but not updated\x1b[0m`);   
+            const error = new Error( `Sensor _id: ${req.params.sensorId} found but not updated`);
+            error.statusCode = 400;
+            next(error);
+        }
+        else {
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Updated 1 document\x1b[0m`); 
+            res.send({message: `Sensor _id: ${req.params.sensorId} updated`});
+        }
+    } catch (error) {
+        next(error);
+        console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error storing document -> ${error.message }\x1b[0m`); 
+    }
+};
+
+exports.deleteSensor = async (req, res, next) => {
+    
+    var collectionName = VwsgPipe3.Sensor.collection.collectionName;
+    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Delete document from ${collectionName}`; 
+    try { // Validacion
+        validationHandler(req);
+    }
+    catch (err) {
+        next(err);
+        console.log(logMessage + "\x1b[31m -> " + err.message + "\x1b[0m");
+        return;
+    }
+    console.log(logMessage + '\x1b[0m');   
+
+    try {
+        let sensor = await VwsgPipe3.Sensor.findOne({ _id: req.params.sensorId });
+        if(sensor == null) {
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error deleting document -> Not found\x1b[0m`);   
+            const error = new Error( `Sensor _id: ${req.params.sensorId} not found`);
+            error.statusCode = 404;
+            next(error);
+        } else { 
+            await sensor.delete();
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Deleted 1 document\x1b[0m`); 
+            res.send({message: `Sensor _id: ${req.params.sensorId} deleted`});
+        }       
+    } catch (error) {
+        next(error);
+        console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error deleting document -> ${error.message }\x1b[0m`); 
+    }
+};
+
+// API DATA
+
+exports.indexData = async (req, res, next) => {
+    
+    var collectionName = VwsgPipe3.Data.collection.collectionName; 
+    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Retrieve documents from ${collectionName}`;
+    try { // Validacion
+        validationHandler(req);
+    }
+    catch (err) {
+        next(err);
+        console.log(logMessage + "\x1b[31m -> " + err.message + "\x1b[0m");
+        return;
+    }
     console.log(logMessage + '\x1b[0m');
 
     try {
@@ -215,9 +218,8 @@ exports.indexData = async (req, res, next) => {
             stageCommon.$match.$and.push({ Date: { $gte: new Date(req.query.fromDate) }});
         if(req.query.toDate !== undefined)
             stageCommon.$match.$and.push({ Date: { $lt: new Date(req.query.toDate) }});
-
         // Facet 1: Project filtra valores devueltos, ordena y aplica skip y limit si estan definidos
-        var facet1Array = [{ $project: {SensorId: 0, Type: 0, __v: 0} }];
+        var facet1Array = [{ $project: {SensorId: 0, __v: 0} }];
         if(req.query.sort !== undefined)
             facet1Array.push({ $sort : { Date: parseInt(req.query.sort) }});
         else
@@ -227,14 +229,11 @@ exports.indexData = async (req, res, next) => {
         if(req.query.limit !== undefined) {
             facet1Array.push({ $limit : parseInt(req.query.limit) });
         }
-        
         // Facet 2: Count
         var facet2Array = [{ $count: "Total" }];
-
         // Ejecuta la Query
         AggregationArray = [ stageCommon, { $facet: { Items: facet1Array, Count: facet2Array }}, { $project: { Items: 1, 'Info.Total': '$Count.Total'}}, { $unwind: '$Info.Total'}];
         const result = await VwsgPipe3.Data.aggregate(AggregationArray);
-        
         // Completa la respuesta con datos calculados e informacion de paginacion
         var response = {};
         response.Items = {};
@@ -255,13 +254,11 @@ exports.indexData = async (req, res, next) => {
             }
             response.Info.Retrieved = result[0].Items.length;
             response.Info.Total = result[0].Info.Total;
-        }      
-                
+        }          
         // Envia la respuesta
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Retrieved ${response.Info.Retrieved} documents\x1b[0m`);   
         res.send(response);
     }
-
     catch (error)
     {
         next(error);
@@ -272,32 +269,121 @@ exports.indexData = async (req, res, next) => {
 exports.showData = async (req, res, next) => {
 
     var collectionName = VwsgPipe3.Data.collection.collectionName;
-    
     var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Retrieve document from ${collectionName}`; 
-    
     try { // Validacion
         validationHandler(req);
     }
-
     catch (err) {
         next(err);
         console.log(logMessage + "\x1b[31m -> " + err.message + "\x1b[0m");
         return;
     }
-
     console.log(logMessage + '\x1b[0m');
    
     try {
         // Obtiene el documento
-        var result = await VwsgPipe3.Data.find( {_id: new mongoose.Types.ObjectId(req.params.dataId)}, {SensorId: 0, Type: 0, __v: 0} ).lean();
+        var result = await VwsgPipe3.Data.find( {_id: req.params.dataId}, {SensorId: 0, __v: 0} ).lean();
         // Envia la respuesta
         result =  await VwsgPipe3.AddCalculatedData(req.params.sensorId, result);     
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Retrieved ${result.length} document\x1b[0m`);   
         res.send((result.length > 0) ? result[0] : {});
-
     } catch (error) {
         next(error);
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error retrieving document -> ${error.message }\x1b[0m`); 
+    }
+};
+
+exports.storeData = async (req, res, next) => {
+    
+    var collectionName = VwsgPipe3.Data.collection.collectionName;
+    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Store document to ${collectionName}`;  
+    try { // Validacion
+        validationHandler(req);
+    }
+    catch (err) {
+        next(err);
+        console.log(logMessage + "\x1b[31m -> " + err.message + "\x1b[0m");
+        return;
+    }
+    console.log(logMessage + '\x1b[0m');   
+
+    try {
+        req.body._id = new mongoose.Types.ObjectId(req.body._id);
+        let data = await VwsgPipe3.Data.create(req.body);
+        console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Stored 1 document\x1b[0m`);   
+        res.send(data);
+    } catch (error) {
+        next(error);
+        console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error storing document -> ${error.message }\x1b[0m`); 
+    }
+};
+
+exports.updateData = async (req, res, next) => {
+    
+    var collectionName = VwsgPipe3.Data.collection.collectionName;
+    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Update document from ${collectionName}`;  
+    try { // Validacion
+        validationHandler(req);
+    }
+    catch (err) {
+        next(err);
+        console.log(logMessage + "\x1b[31m -> " + err.message + "\x1b[0m");
+        return;
+    }
+    console.log(logMessage + '\x1b[0m');   
+
+    try {
+        let result = await VwsgPipe3.Data.updateOne({ _id: req.params.dataId }, { $set: req.body } );
+        if(result.n === 0) {
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error updating document -> Not found\x1b[0m`);   
+            const error = new Error( `Data _id: ${req.params.dataId} not found`);
+            error.statusCode = 404;
+            next(error);
+        } else if ( result.nModified === 0) {
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error updating document -> Found but not updated\x1b[0m`);   
+            const error = new Error( `Sensor _id: ${req.params.dataId} found but not updated`);
+            error.statusCode = 400;
+            next(error);
+        }
+        else {
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Updated 1 document\x1b[0m`); 
+            res.send({message: `Sensor _id: ${req.params.dataId} updated`});
+        }
+    } catch (error) {
+        next(error);
+        console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error storing document -> ${error.message }\x1b[0m`); 
+    }
+};
+
+exports.deleteData = async (req, res, next) => {
+    
+    var collectionName = VwsgPipe3.Data.collection.collectionName;
+    var logMessage = dayTime.getUtcString() + `\x1b[34mApi: ${req.method} (${req.originalUrl}) | Delete document from ${collectionName}`; 
+    try { // Validacion
+        validationHandler(req);
+    }
+    catch (err) {
+        next(err);
+        console.log(logMessage + "\x1b[31m -> " + err.message + "\x1b[0m");
+        return;
+    }
+    console.log(logMessage + '\x1b[0m');   
+
+    try {
+        let data = await VwsgPipe3.Data.findOne({ _id: req.params.dataId });
+        if(data == null) {
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error deleting document -> Not found\x1b[0m`);   
+            const error = new Error( `Sensor _id: ${req.params.dataId} not found`);
+            error.statusCode = 404;
+            next(error);
+        } else { 
+            await data.delete();
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Deleted 1 document\x1b[0m`); 
+            res.send({message: `Sensor _id: ${req.params.dataId} deleted`});
+        }       
+    } catch (error) {
+        next(error);
+        console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error deleting document -> ${error.message }\x1b[0m`); 
     }
 };
 

@@ -4,12 +4,13 @@ const moment = require('moment');
 
 const dayTime = require('../services/daytime')
 const { TagsSchema } = require('../models/tagsModel');
+const { ConnectionType } = require('../configs/types')
 
 const Schema = mongoose.Schema;
 
 // DISCRIMINADOR DE TIPOS
 
-const discriminator = { discriminatorKey: 'Type' };
+const discriminator = { discriminatorKey: 'ConnectionType' };
 
 // CONFIGURACION BASE SENSOR VWSG PIPE3
 
@@ -32,13 +33,13 @@ const ConfigSchema = new Schema({
 // Esquema base
 const SensorSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
-    Tags: TagsSchema,
+    Name: { type: String, required: true, unique: true },
+    Tags: { type: TagsSchema },
     Configurations: [ConfigSchema] 
 });
-SensorSchema.index({"Tags.Name": 1}, {unique: true});
 
 // Esquema adicional de configuracion para tipo Capbell Logger 
-SensorSchema.path('Configurations').discriminator(process.env.DEVICE_DISC_CAMPBELL, new Schema({
+SensorSchema.path('Configurations').discriminator(ConnectionType.Campbell, new Schema({
     DataSourceFileName: { type: String, default: "" },
     DataSourceStrainCols: { type: Array, default: [null, null, null] },
     DataSourceTempCols: { type: Array, default: [null, null, null]  },
@@ -46,7 +47,7 @@ SensorSchema.path('Configurations').discriminator(process.env.DEVICE_DISC_CAMPBE
 }, { _id: false }));
 
 // Esquema adicional de configuracion para tipo Azure IoT
-SensorSchema.path('Configurations').discriminator(process.env.DEVICE_DISC_AZURE, new Schema({
+SensorSchema.path('Configurations').discriminator(ConnectionType.Azure, new Schema({
 
 }, { _id: false }));
 
@@ -60,27 +61,13 @@ exports.Sensor = Sensor;
 const DataSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     SensorId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    Date: { type: Date, index: { unique: true }},
+    Date: { type: Date, required: true, unique: true },
     Strains: { type: Array, default: [] },
     Temps: { type: Array, default: [] }
-},
-    discriminator
-);
-
-// Esquema adicional para tipo Capbell Scientific Logger
-const DataCampbellSchema = new Schema({ 
-        
-});
-
-// Esquema adicional para  tipo Azure IoT Device
-const DataAzureSchema = new Schema({ 
-        
 });
 
 // Exporta los modelos de datos de sensor
 const Data = mongoose.model('DataVwsgPipe3', DataSchema, 'DataVwsgPipe3');
-Data.discriminator('DataVwsgPipe3Campbell', DataCampbellSchema, process.env.DEVICE_DISC_CAMPBELL);
-Data.discriminator('DataVwsgPipe3Azure', DataAzureSchema, process.env.DEVICE_DISC_AZURE);
 exports.Data = Data;
 
 // FUNCIONES
@@ -151,11 +138,11 @@ const LoadFromParsedData = async (sensorType, fileName, parsedData) => {
     if((sensorType === undefined) || (fileName === undefined) || (parsedData === undefined))
         throw new Error('Parameters could not be undefined.')
 
-    if(sensorType == process.env.DEVICE_DISC_CAMPBELL)
+    if(sensorType == ConnectionType.Campbell)
     {
         try {
             // Obtiene los sensores VwsgPipe3 de loggers Campbell Scientific con solo la ultima configuracion
-            var sensorsConf = await GetSensorConfig(null, true, process.env.DEVICE_DISC_CAMPBELL);
+            var sensorsConf = await GetSensorConfig(null, true, ConnectionType.Campbell);
 
             // Verifica si coincide con la configuracion de alguno de los sensores
             for (i = 0; i < sensorsConf.length; i++) { 
@@ -166,7 +153,6 @@ const LoadFromParsedData = async (sensorType, fileName, parsedData) => {
                         // Carga los dados del sensor y guarda
                         let data = new Data();
                         data._id = mongoose.Types.ObjectId().toHexString();
-                        data.Type = process.env.DEVICE_DISC_CAMPBELL;
                         data.SensorId = sensorsConf[i]._id;
                         data.Date = moment(parsedData[j][0]+numeral(sensorsConf[i].Configurations[0].DataSourceTimezone).format('+00'), moment.ISO_8601)
                         data.Strains.push(parsedData[j][sensorsConf[i].Configurations[0].DataSourceStrainCols[0]]);
@@ -181,7 +167,7 @@ const LoadFromParsedData = async (sensorType, fileName, parsedData) => {
                 }
             }
         } catch (error) {
-            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: Error loading data from ${process.env.DEVICE_DISC_CAMPBELL} parsed file -> ${error}\x1b[0m`); 
+            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: Error loading data from ${ConnectionType.Campbell} parsed file -> ${error}\x1b[0m`); 
         }
     }
 }

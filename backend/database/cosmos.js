@@ -13,6 +13,7 @@ exports.connect = async () => {
             },
             useNewUrlParser: true,
             useUnifiedTopology: true,
+            useCreateIndex: true,
             retryWrites: false
         });
         console.log(dayTime.getUtcString() + "\x1b[35mDatabase: Connection to CosmosDB successful\x1b[0m"); 

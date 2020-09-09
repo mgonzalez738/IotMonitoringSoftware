@@ -106,7 +106,7 @@ function parseFile(file) {
                 // Carga los datos en sensores VwsgPipe3
                 console.log(dayTime.getUtcString() + `\x1b[33mFtpServer: File parsed | ${path.basename(file)} -> ${results.length} valid entries\x1b[0m`); 
                 if(results.length > 0)
-                    await VwsgPipe3.LoadFromParsedData(process.env.DEVICE_DISC_CAMPBELL, path.basename(file), results);
+                    await VwsgPipe3.LoadFromParsedData(ConnectionType.Campbell, path.basename(file), results);
                 deleteFile(file);
             });
     }

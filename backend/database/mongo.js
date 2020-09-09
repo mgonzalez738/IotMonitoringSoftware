@@ -9,6 +9,7 @@ exports.connect = async () => {
         await mongoose.connect('mongodb://localhost/IotMonitoring', {
             useUnifiedTopology: true,
             useNewUrlParser: true,
+            useCreateIndex: true
         }); 
         console.log(dayTime.getUtcString() + "\x1b[35mDatabase: Connection to local MongoDB successful\x1b[0m"); 
     }
