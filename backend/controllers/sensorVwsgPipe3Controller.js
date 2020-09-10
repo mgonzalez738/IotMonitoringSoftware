@@ -123,15 +123,15 @@ exports.storeSensor = async (req, res, next) => {
     if(req.body.ConnectionType == ConnectionType.Azure)
     {
         try {
-            var connectionString = await iotHub.CreateDevice(req.body._id);
+            var connectionString = await iotHub.CreateDevice(req.body.Name, false);
             req.body.Device = {};
             console.log(connectionString);
             req.body.Device.ConnectionString = connectionString;
-            console.log(dayTime.getUtcString() + `\x1b[33mAzureIot: ${iotHubName} | Device created\x1b[0m`); 
+            console.log(dayTime.getUtcString() + `\x1b[33mAzureIot: ${iotHubName} | Device ${req.body.Name} created\x1b[0m`); 
         }
         catch (error) {
             next(error);
-            console.log(dayTime.getUtcString() + `\x1b[33mAzureIot: ${iotHubName} | Error creating device -> ${error.message}\x1b[0m`); 
+            console.log(dayTime.getUtcString() + `\x1b[33mAzureIot: ${iotHubName} | Error creating device ${req.body.Name} -> ${error.message}\x1b[0m`); 
             console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Document storing omitted\x1b[0m`); 
             return;
         }
@@ -144,7 +144,12 @@ exports.storeSensor = async (req, res, next) => {
     } catch (error) {
         // Si era azure borrarlo porque fallo al incluirlo en la base de datos
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error storing document -> ${error.message }\x1b[0m`); 
+        if(req.body.ConnectionType == ConnectionType.Azure) {
+            await iotHub.DeleteDevice(req.body.Name);
+            console.log(dayTime.getUtcString() + `\x1b[33mAzureIot: ${iotHubName} | Device ${req.body.Name} deleted\x1b[0m`);
+        }
         next(error);
+        return;
     }
 };
 
@@ -198,23 +203,43 @@ exports.deleteSensor = async (req, res, next) => {
         return;
     }
     console.log(logMessage + '\x1b[0m');   
-
+    
     try {
+
+        // Ubica el sensor en la base de datos
         let sensor = await VwsgPipe3.Sensor.findOne({ _id: req.params.sensorId });
         if(sensor == null) {
             console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error deleting document -> Not found\x1b[0m`);   
             const error = new Error( `Sensor _id: ${req.params.sensorId} not found`);
             error.statusCode = 404;
             next(error);
-        } else { 
-            await sensor.delete();
-            console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Deleted 1 document\x1b[0m`); 
-            res.send({message: `Sensor _id: ${req.params.sensorId} deleted`});
-        }       
+            return;
+        } 
+        // Si es un sensor Azure lo elimina en el IotHub
+        if(sensor.ConnectionType == ConnectionType.Azure)
+        {
+            try {
+                await iotHub.DeleteDevice(sensor.Name);
+                console.log(dayTime.getUtcString() + `\x1b[33mAzureIot: ${iotHubName} | Device ${sensor.Name} deleted\x1b[0m`); 
+            }
+            catch (error) {
+                next(error);
+                console.log(dayTime.getUtcString() + `\x1b[33mAzureIot: ${iotHubName} | Error deleting device ${sensor.Name} -> ${error.message}\x1b[0m`); 
+                console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Document deletion omitted\x1b[0m`); 
+                return;
+            }
+        }   
+        // Borra el sensor de la base de datos
+        await sensor.delete();
+        console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Deleted 1 document\x1b[0m`); 
+        res.send({message: `Sensor _id: ${req.params.sensorId} deleted`});
     } catch (error) {
         next(error);
         console.log(dayTime.getUtcString() + `\x1b[35mDatabase: ${collectionName} | Error deleting document -> ${error.message }\x1b[0m`); 
+        return;
     }
+
+    
 };
 
 // API DATA

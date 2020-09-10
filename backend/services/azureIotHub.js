@@ -21,5 +21,10 @@ exports.CreateDevice = async (id, isEdge) => {
     return "HostName=" + process.env.IOT_HUB_HOST + ";" +
            "DeviceId=" + result.responseBody.deviceId + ";" +
            "SharedAccessKey=" + result.responseBody.authentication.symmetricKey.primaryKey;
+}
 
+exports.DeleteDevice = async (id) => {
+    
+    const result = await registry.delete(id);
+    return result;
 }
