@@ -17,6 +17,11 @@ router.get('/',
 
 // POST
 
+router.post('/login',
+    [ ],
+    UserController.loginUser
+);
+
 router.post('/',
     [ ],
     UserController.storeUser

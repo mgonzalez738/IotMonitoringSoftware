@@ -77,16 +77,16 @@ exports.start = async () => {
     }; 
   
     // The types are incorrect here - listen returns a promise 
-    server.listen().then(
-        console.log(dayTime.getUtcString() + "\x1b[33mFtpServer: Start listening on port " + process.env.FTP_SRV_PORT + "\x1b[0m")
-    ); 
+    await server.listen();
+     
+    console.log(dayTime.getUtcString() + "\x1b[33mFtpServer: Start listening on port " + process.env.FTP_SRV_PORT + "\x1b[0m")
 
     return { 
         shutdownFunc: async () => { 
         // server.close() returns a promise - another incorrect type 
         await closeFtpServer(); 
         }, 
-    }; 
+    };   
 }; 
 
 function parseFile(file) {

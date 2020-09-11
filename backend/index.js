@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 
 const dayTime = require('./services/daytime')
 
@@ -28,6 +29,7 @@ ftpServer.start();
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "import")));
 
 app.get('/', function (req, res) {
