@@ -11,6 +11,7 @@ const database = require('./database/cosmos');
 const iotHubEventConsumer = require('./consumers/iotHubEventConsumer');
 const ftpServer = require('./consumers/ftpConsumer');
 
+const userRoutes = require('./routes/userRoute');
 const gatewayRoutes = require('./routes/gatewayRoute');
 const sensorVwsgPipe3Routes = require('./routes/sensorVwsgPipe3Routes');
 
@@ -33,10 +34,9 @@ app.get('/', function (req, res) {
   res.send('Hello from Gie IotMonitoring Api')
 });
 
-// Rutas Gateways
+// Rutas 
+app.use("/api/auth/users", userRoutes);
 app.use("/api/gateways", gatewayRoutes);
-
-// Rutas Sensores
 app.use("/api/sensors/vwsgPipe3", sensorVwsgPipe3Routes);
 
 app.use(errorHandler);

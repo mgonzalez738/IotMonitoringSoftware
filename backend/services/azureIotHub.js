@@ -9,10 +9,10 @@ var iotHubConnectionString = "HostName=" + process.env.IOT_HUB_HOST + ";" +
 var registry = Registry.fromConnectionString("HostName=MonitoringHub.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=aOFsWnGlHYPBUyO+J4QJtrq7zXITgnxlHuOewLiyTpU=");                           
 var client = Client.fromConnectionString(iotHubConnectionString);
 
-exports.CreateDevice = async (id, isEdge) => {
+exports.CreateDevice = async (deviceId, isEdge) => {
     
     var deviceInfo = {
-        deviceId: id,
+        deviceId: deviceId,
         status: 'enabled',
         capabilities: { iotEdge: isEdge }
     };
@@ -23,8 +23,9 @@ exports.CreateDevice = async (id, isEdge) => {
            "SharedAccessKey=" + result.responseBody.authentication.symmetricKey.primaryKey;
 }
 
-exports.DeleteDevice = async (id) => {
+exports.DeleteDevice = async (deviceId) => {
     
-    const result = await registry.delete(id);
+    const result = await registry.delete(deviceId);
     return result;
 }
+
