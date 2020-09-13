@@ -1,11 +1,7 @@
 module.exports = (error, req, res, next) => {
-    const status = error.statusCode || 500;
-    const message = error.message;
-    const details = error.validation;
-    const data = error.data;
-    res.status(status).json({
-        message,
-        details,
-        data
+    res.status(error.statusCode || 500).json({
+        Success: false,
+        Message: error.message || 'Server error',
+        Data: error.data
     });
 };

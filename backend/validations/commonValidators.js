@@ -1,6 +1,6 @@
 const { body, param, query } = require('express-validator');
 
-// Params
+// PARAMS
 
 exports.paramGatewayIdIsMongoId = param("gwId")
     .isMongoId()
@@ -14,7 +14,7 @@ exports.paramDataIdIsMongoId = param("dataId")
     .isMongoId()
     .withMessage("Parameter 'dataId' must be a valid hex-encoded representation of a MongoDB ObjectId");
 
-// Queries
+// QUERIES
 
 exports.queryFromDateIsISO8601 = query("fromDate")
     .optional().isISO8601({ strict: true })
@@ -44,16 +44,22 @@ exports.querySortCustom = query("sort")
         }
     });
 
-// Body
+// BODY
 
 exports.bodyNameRequired = body("Name")
-    .notEmpty().withMessage("Body key 'Name' must be present, not empty and unique in collection");
+    .notEmpty().withMessage("Body key 'Name' must be present and unique in collection");
+
+exports.bodyEmailRequired = body("Email")
+    .isEmail().withMessage("Invalid email address");
+
+exports.bodyPasswordFormat = body("Password")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,20}$/, "i")
+    .withMessage("Password should be combination of one uppercase , one lower case, one digit and min 8 , max 20 char long");
 
 
 
 
-
-
+    
 exports.bodyIsAggregationStageArray = body()
     .custom((value, { req })  => {
        if(Object.keys(req.body).length !== 0)

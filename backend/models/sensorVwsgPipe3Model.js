@@ -47,7 +47,7 @@ exports.Sensor = Sensor;
 // Esquema base
 const DataSchema = new Schema({ 
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
-    SensorId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    SensorId: { type: mongoose.Schema.Types.ObjectId, ref: 'SensorVwsgPipe3', required: true },
     Date: { type: Date, required: true },
     Strains: { type: Array, default: [] },
     Temps: { type: Array, default: [] }

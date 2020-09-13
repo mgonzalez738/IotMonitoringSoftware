@@ -5,6 +5,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
+const { loginUser } = require('./controllers/userController');
+const { bodyEmailRequired } = require('./validations/commonValidators');
 const dayTime = require('./services/daytime')
 
 const database = require('./database/cosmos');
@@ -15,7 +17,7 @@ const ftpServer = require('./consumers/ftpConsumer');
 const userRoutes = require('./routes/userRoute');
 const gatewayRoutes = require('./routes/gatewayRoute');
 const sensorVwsgPipe3Routes = require('./routes/sensorVwsgPipe3Routes');
-
+const { Authenticate } = require('./middleware/authorization');
 const errorHandler = require("./middleware/errorHandler");
 
 const listenPort = process.env.PORT;
@@ -37,9 +39,10 @@ app.get('/', function (req, res) {
 });
 
 // Rutas 
-app.use("/api/auth/users", userRoutes);
+app.post("/api/auth/users/login", bodyEmailRequired, loginUser); // Unica sin autenticacion
+app.use("/api/auth/users", Authenticate, userRoutes);
 app.use("/api/gateways", gatewayRoutes);
-app.use("/api/sensors/vwsgPipe3", sensorVwsgPipe3Routes);
+app.use("/api/sensors/vwsgPipe3", Authenticate, sensorVwsgPipe3Routes);
 
 app.use(errorHandler);
 
