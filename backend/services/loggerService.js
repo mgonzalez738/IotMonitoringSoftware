@@ -1,5 +1,5 @@
-const colors = require('colors');
 const { Log } = require('../models/logModel');
+const { Configuration } = require('../models/configurationModel');
 
 const Levels = {
     Trace: { Text: 'Trace', Value: 100 },
@@ -23,19 +23,43 @@ GetUtcString = (date) => {
 
 class Logger {
     constructor() {
-        // Cargar desde DB
         this.level = Levels.Debug;
+        this.DbConnected = false;
     }
 
-    SetLevel(level) {
-        if(Levels[level] == null)
+    async SetLevel(level) {
+        if(Levels[level.Text] == null)
             throw(new Error(`Unknown logger level ${level}`));
         this.level = level;
-        // Guardar en DB
+        let configuration = await Configuration.updateOne({}, {LoggerLevel: this.level});
+    }
+
+    GetLevel() {
+        return this.level;
+    }
+
+    async SetDbConnected(status) {
+        if(status == null) {
+            throw(new Error(`Unknown status`));
+        }
+        if(status) { // Lee Log Level de la BD
+            this.DbConnected = true;
+            let configuration = await Configuration.findOne();
+            if(configuration) {
+                this.level = configuration.LoggerLevel;
+            }
+            else {
+                configuration = new Configuration();
+                configuration.LoggerLevel = this.level;
+                await configuration.save();
+            }
+        }
+        else {
+            this.DbConnected = false;
+        }
     }
 
     async Save(level, process, message, userId, data) {
-        
         if(Levels[level.Text] == null)
             throw(new Error(`Unknown logger level`));
         
@@ -65,19 +89,21 @@ class Logger {
             console.log(logCon);
 
             // Log a base de datos
-            try {
-                let logDb = new Log();
-                logDb.Timestamp = timestamp;
-                logDb.Level = level.Text;
-                logDb.Process = process;
-                logDb.Message = message;
-                logDb.User = userId;
-                logDb.Data = data;
-                await logDb.save();
-            }
-            catch(error)
-            {
-                console.log(error);
+            if(this.DbConnected) {
+                try {
+                    let logDb = new Log();
+                    logDb.Timestamp = timestamp;
+                    logDb.Level = level.Text;
+                    logDb.Process = process;
+                    logDb.Message = message;
+                    logDb.User = userId;
+                    logDb.Data = data;
+                    await logDb.save();
+                }
+                catch(error)
+                {
+                    //console.log(error);
+                }
             }
         }
     }

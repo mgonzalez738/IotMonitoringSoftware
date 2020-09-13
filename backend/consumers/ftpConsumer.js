@@ -12,6 +12,8 @@ const dns = require('../services/dns')
 const VwsgPipe3 = require("../models/sensorVwsgPipe3Model");
 const { ConnectionType } = require('../configs/types');
 
+const { Levels, Logger } = require('../services/loggerService');
+
 // Inicia el servicio
 
 exports.start = async () => {  
@@ -78,8 +80,8 @@ exports.start = async () => {
   
     // The types are incorrect here - listen returns a promise 
     await server.listen();
-     
-    console.log(dayTime.getUtcString() + "\x1b[33mFtpServer: Start listening on port " + process.env.FTP_SRV_PORT + "\x1b[0m")
+
+    Logger.Save(Levels.Info, 'FtpServer',`Start listening on port ${process.env.FTP_SRV_PORT}`); 
 
     return { 
         shutdownFunc: async () => { 

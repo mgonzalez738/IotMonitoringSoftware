@@ -4,13 +4,15 @@ const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const mongoose = require('mongoose');
+
+const { Levels, Logger } = require('./services/loggerService');
 
 const { loginUser } = require('./controllers/userController');
 const { bodyEmailRequired } = require('./validations/commonValidators');
-const dayTime = require('./services/daytime')
 
-const database = require('./database/cosmos');
-//const database = require('./database/mongo');
+const { DbName, DbConnectionString, DbConnectionOptions} = require('./database/cosmos');
+
 const iotHubEventConsumer = require('./consumers/iotHubEventConsumer');
 const ftpServer = require('./consumers/ftpConsumer');
 
@@ -21,12 +23,6 @@ const { Authenticate } = require('./middleware/authorization');
 const errorHandler = require("./middleware/errorHandler");
 
 const listenPort = process.env.PORT;
-
-// Inicia servicios
-
-database.connect();
-iotHubEventConsumer.suscribe();
-ftpServer.start();
 
 const app = express();
 app.use(cors());
@@ -46,8 +42,34 @@ app.use("/api/sensors/vwsgPipe3", Authenticate, sensorVwsgPipe3Routes);
 
 app.use(errorHandler);
 
-// Start Server
-app.listen(listenPort, () => {
-  console.log(dayTime.getUtcString() + "\x1b[34mApi: Start listening on port " + listenPort + "\x1b[0m");
-})
+// Espera la conexion a la base de datos para arrancar la app
+
+app.on('dbReady', function() { 
+  app.listen(listenPort, () => {
+    Logger.Save(Levels.Info, 'Api',"Start listening on port " + listenPort); 
+    iotHubEventConsumer.suscribe();
+    ftpServer.start();
+  }); 
+}); 
+
+// Conecta a la base de datos
+mongoose.connect(DbConnectionString, DbConnectionOptions)
+  .then( async () => {
+    // Avisa al logger que la DB esta conectada
+    await Logger.SetDbConnected(true);
+    Logger.Save(Levels.Info, 'Backend',`Application startded`); 
+    Logger.Save(Levels.Info, 'Database',`${DbName} connected`); 
+    Logger.Save(Levels.Info, 'Logger',`Level set to ${Logger.GetLevel().Text}`); 
+    app.emit('dbReady');
+  })
+  .catch(err => { 
+    Logger.Save(Levels.Info, 'Backend',`Application startded`); 
+    Logger.Save(Levels.Fatal, 'Database',`Error connecting to ${DbName} -> ${err.message}`);
+  });
+
+
+
+
+
+
 
