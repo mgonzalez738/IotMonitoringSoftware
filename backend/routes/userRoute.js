@@ -3,7 +3,7 @@ const router = express.Router();
 
 const UserController = require('../controllers/userController');
 const { Authorize } = require('../middleware/authorization');
-const { bodyEmailRequired, bodyPasswordFormat } = require('../validations/commonValidators');
+const { bodyNameRequired, bodyEmailRequired, bodyPasswordFormat, bodyCompanyIdIsMongoId } = require('../validations/userValidators');
 
 // GETS
 
@@ -19,7 +19,7 @@ router.get('/:userId',
 
 router.get('/',
     [ Authorize('super', 'administrator') ],
-    //UserController.indexUser
+    UserController.indexUser
 );
 
 // POST
@@ -27,7 +27,7 @@ router.get('/',
 router.post('/',
     [ 
         Authorize('super', 'administrator'),
-        bodyEmailRequired, bodyPasswordFormat
+        bodyNameRequired, bodyEmailRequired, bodyPasswordFormat, bodyCompanyIdIsMongoId
     ],
     UserController.storeUser
 );

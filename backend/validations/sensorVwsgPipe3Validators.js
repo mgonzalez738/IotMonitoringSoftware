@@ -1,6 +1,9 @@
 const { ConnectionType } = require('../configs/types')
 const { body, check} = require('express-validator');
 
+exports.bodyNameRequired = body("Name")
+    .notEmpty().withMessage("Body key 'Name' must be present and unique in collection");
+
 exports.bodyConfigurationCustom = body("Configurations")
     .custom((value, { req })  => {
         // Valida que Configuration sea un array y contenga al menos una configuracion

@@ -7,31 +7,21 @@ const crypto = require('crypto');
 const UserSchema = new mongoose.Schema({ 
     FirstName: { type: String, required: true },
     LastName: { type: String, required: true },
-    Email: { 
-        type: String, required: true, unique: true,
-        match: /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/ 
-    },
-    Role: { 
-        type: String,
-        enum: ['super', 'administrator', 'user', 'guest'],
-        default: 'user' 
-    },
-    Password: {
-        type: String,
-        required: true,
-        minlength: 6,
-        select: false,
-    },
+    Email: { type: String, required: true, unique: true },
+    Role: { type: String, enum: ['super', 'administrator', 'user', 'guest'], default: 'user' },
+    Password: { type: String, required: true, select: false },
+    CompanyId: { type: mongoose.Schema.Types.ObjectId },
     ResetPasswordToken: String,
     ResetPasswordExpire: Date,
-    CreatedAt: {
-        type: Date,
-        default: Date.now
-    }   
+    CreatedAt: { type: Date, default: Date.now }   
 });
+UserSchema.index({ LastName: 1, FirstName: 1 });
 
 /**Encripta el password */
 UserSchema.pre('save', async function(next) {
+    if(!this.isModified('Password')) {
+        next();
+    }
     const salt = await bcrypt.genSalt(10);
     this.Password = await bcrypt.hash(this.Password, salt);
 });
@@ -49,7 +39,7 @@ UserSchema.methods.matchPassword = async function(enteredPassword) {
 };
 
 /** Genera y hashea el token de password*/
-UserSchema.methods.getResetPasswordToken = async function() {
+UserSchema.methods.getResetPasswordToken = function() {
     const resetToken = crypto.randomBytes(20).toString('hex');
     this.ResetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     this.ResetPasswordExpire = Date.now() + 10 * 60 * 1000;

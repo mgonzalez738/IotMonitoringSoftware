@@ -8,8 +8,8 @@ const mongoose = require('mongoose');
 
 const { Levels, Logger } = require('./services/loggerService');
 
-const { loginUser } = require('./controllers/userController');
-const { bodyEmailRequired } = require('./validations/commonValidators');
+const { loginUser, forgotPassword, resetPassword } = require('./controllers/userController');
+const { bodyEmailRequired, bodyPasswordFormat } = require('./validations/userValidators');
 
 const { DbName, DbConnectionString, DbConnectionOptions} = require('./database/cosmos');
 
@@ -35,7 +35,9 @@ app.get('/', function (req, res) {
 });
 
 // Rutas 
-app.post("/api/auth/users/login", bodyEmailRequired, loginUser); // Unica sin autenticacion
+app.post("/api/auth/users/login", [ bodyEmailRequired ], loginUser); // sin autenticacion
+app.post("/api/auth/users/forgotpassword", [ bodyEmailRequired ], forgotPassword); // sin autenticacion
+app.put("/api/auth/users/resetpassword/:resetToken", [ bodyEmailRequired, bodyPasswordFormat], resetPassword); // sin autenticacion
 app.use("/api/auth/users", Authenticate, userRoutes);
 app.use("/api/gateways", gatewayRoutes);
 app.use("/api/sensors/vwsgPipe3", Authenticate, sensorVwsgPipe3Routes);
@@ -56,7 +58,7 @@ app.on('dbReady', function() {
 mongoose.connect(DbConnectionString, DbConnectionOptions)
   .then( async () => {
     // Avisa al logger que la DB esta conectada
-    await Logger.SetDbConnected(true);
+    //await Logger.SetDbConnected(true);
     Logger.Save(Levels.Info, 'Backend',`Application startded`); 
     Logger.Save(Levels.Info, 'Database',`${DbName} connected`); 
     Logger.Save(Levels.Info, 'Logger',`Level set to ${Logger.GetLevel().Text}`); 
@@ -66,6 +68,8 @@ mongoose.connect(DbConnectionString, DbConnectionOptions)
     Logger.Save(Levels.Info, 'Backend',`Application startded`); 
     Logger.Save(Levels.Fatal, 'Database',`Error connecting to ${DbName} -> ${err.message}`);
   });
+
+
 
 
 

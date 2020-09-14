@@ -31,7 +31,12 @@ class Logger {
         if(Levels[level.Text] == null)
             throw(new Error(`Unknown logger level ${level}`));
         this.level = level;
-        let configuration = await Configuration.updateOne({}, {LoggerLevel: this.level});
+        try {
+            let configuration = await Configuration.updateOne({}, {LoggerLevel: this.level});
+        }
+        catch (error) {
+            console.log(error);
+        }
     }
 
     GetLevel() {
@@ -42,24 +47,30 @@ class Logger {
         if(status == null) {
             throw(new Error(`Unknown status`));
         }
-        if(status) { // Lee Log Level de la BD
-            this.DbConnected = true;
-            let configuration = await Configuration.findOne();
-            if(configuration) {
-                this.level = configuration.LoggerLevel;
+        try {
+            if(status) { // Lee Log Level de la BD
+                this.DbConnected = true;
+                let configuration = await Configuration.findOne();
+                if(configuration) {
+                    this.level = configuration.LoggerLevel;
+                }
+                else {
+                    configuration = new Configuration();
+                    configuration.LoggerLevel = this.level;
+                    await configuration.save();
+                }
             }
             else {
-                configuration = new Configuration();
-                configuration.LoggerLevel = this.level;
-                await configuration.save();
+                this.DbConnected = false;
             }
         }
-        else {
-            this.DbConnected = false;
+        catch(error)
+        {
+            console.log(error);
         }
     }
 
-    async Save(level, process, message, userId, data) {
+    async Save(level, process, message, userId, ip, data) {
         if(Levels[level.Text] == null)
             throw(new Error(`Unknown logger level`));
         
@@ -97,12 +108,13 @@ class Logger {
                     logDb.Process = process;
                     logDb.Message = message;
                     logDb.User = userId;
+                    logDb.Ip = ip;
                     logDb.Data = data;
                     await logDb.save();
                 }
                 catch(error)
                 {
-                    //console.log(error);
+                    console.log(error);
                 }
             }
         }

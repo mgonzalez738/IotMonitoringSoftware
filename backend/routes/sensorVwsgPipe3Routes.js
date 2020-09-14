@@ -4,8 +4,8 @@ const router = express.Router();
 const { Authorize } = require('../middleware/authorization');
 
 const {paramSensorIdIsMongoId, paramDataIdIsMongoId} = require('../validations/commonValidators');
-const {queryFromDateIsISO8601, queryToDateIsISO8601, querySkipIsInt, queryLimitIsInt, querySortCustom, bodyNameRequired } = require('../validations/commonValidators');
-const {bodyConfigurationCustom} = require('../validations/sensorVwsgPipe3Validators');
+const {queryFromDateIsISO8601, queryToDateIsISO8601, querySkipIsInt, queryLimitIsInt, querySortCustom } = require('../validations/commonValidators');
+const {bodyConfigurationCustom, bodyNameRequired} = require('../validations/sensorVwsgPipe3Validators');
 
 const SensorController = require('../controllers/sensorVwsgPipe3Controller');
 

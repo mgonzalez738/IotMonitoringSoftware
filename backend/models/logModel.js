@@ -6,6 +6,7 @@ const LogSchema = new mongoose.Schema({
     Level: { type: String, required: true },
     Process: { type: String, required: true },
     User: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    Ip: {type: String },
     Message: { type: String },
     Data: { type: mongoose.Schema.Types.Mixed }
 });
