@@ -23,7 +23,7 @@ exports.indexUser = async (req, res, next) => {
     
     // Devuelve los usuarios
     try {
-        AggregationArray = [];
+        let AggregationArray = [];
         // Filtra por FirstName si esta definido
         if(req.query.firstname) {
             AggregationArray.push({ $match : { FirstName: req.query.firstname }});
@@ -34,19 +34,50 @@ exports.indexUser = async (req, res, next) => {
         }
         // Filtra por Email si esta definido
         if(req.query.email) {
-            AggregationArray.push({ $match : { Emaul: req.query.email }});
+            AggregationArray.push({ $match : { Email: req.query.email }});
         }
         // Ordena por LastName FirstName ascendente
         AggregationArray.push({ $sort : { LastName: 1, FirstName: 1 }});
+        // Oculta los campos relacionados con el password
+        AggregationArray.push({ $project : { Password: 0, ResetPasswordToken: 0, ResetPasswordExpire:0 }});
         // Aplica paginacion si esta definido limit o skip
         if(req.query.skip || req.query.limit)
         {
             // Con paginacion
+            let facet1Array = [];
+            if(req.query.skip) {
+                facet1Array.push({ $skip : parseInt(req.query.skip) });
+            }
+            if(req.query.limit) {
+                facet1Array.push({ $limit : parseInt(req.query.limit) });
+            }
+            // Facet 2: Count
+            let facet2Array = [{ $count: "Total" }];
+            // Ejecuta la consulta
+            AggregationArray.push({ $facet: { Items: facet1Array, Count: facet2Array }}, { $project: { Items: 1, 'Pagination.Total': '$Count.Total'}}, { $unwind: '$Pagination.Total'});
+            let result = await User.aggregate(AggregationArray);
+            // Completa la respuesta con informacion de paginacion
+            var response = { Success: true, Pagination: { From: null, To: null}, Data: [] };
+            if(result.length == 0) { // No hubo respuesta 
+                response.Pagination.Retrieved = 0;
+                response.Pagination.Total = 0;
+            } else {
+                response.Data =  result[0].Items;
+                if(result[0].Items.length) {
+                    response.Pagination.From = (req.query.skip) ? Number(req.query.skip) + 1 : 1;
+                    response.Pagination.To = (req.query.limit) ? response.Pagination.From + Number(req.query.limit) - 1 : result[0].Pagination.Total;
+                    if((response.Pagination.To) && (response.Pagination.To > result[0].Pagination.Total))
+                        response.Pagination.To = result[0].Pagination.Total;
+                }
+                response.Pagination.Retrieved = result[0].Items.length;
+                response.Pagination.Total = result[0].Pagination.Total;
+            } 
+            res.send(response);     
         }
         else
         {
             // Sin paginacion
-            var result = await User.aggregate(AggregationArray);
+            let result = await User.aggregate(AggregationArray);
             res.send({ Success: true, Data: result });
         }
 
