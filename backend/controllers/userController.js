@@ -11,11 +11,12 @@ const collectionName = User.collection.collectionName;
 exports.indexUser = async (req, res, next) => {
     
     // Valida los datos del pedido
-    let logMessage = `${req.method} (${req.originalUrl}) | Retrieve documents from ${collectionName}`;  
+    let logMessage = `${req.method} (${req.originalUrl}) | Retrieve users from ${collectionName}`;  
     try { 
         validationHandler(req);
     }
     catch (error) {
+        logMessage += ' -> Validation Error';
         Logger.Save(Levels.Warning, 'Api', logMessage, req.user._id); 
         return next(new ErrorResponse(error.message, error.statusCode, error.validation));
     }
@@ -72,29 +73,62 @@ exports.indexUser = async (req, res, next) => {
                 response.Pagination.Retrieved = result[0].Items.length;
                 response.Pagination.Total = result[0].Pagination.Total;
             } 
+            Logger.Save(Levels.Info, 'Database', `${response.Data.length} user retrieved from ${collectionName}`, req.user._id);
             res.send(response);     
         }
         else
         {
             // Sin paginacion
             let result = await User.aggregate(AggregationArray);
+            Logger.Save(Levels.Info, 'Database', `${result.length} user retrieved from ${collectionName}`, req.user._id);
             res.send({ Success: true, Data: result });
         }
 
     } catch (error) {
-        Logger.Save(Levels.Error, 'Database', `Error retrieving documents from ${collectionName} -> ${error.message}`, req.user._id);
+        Logger.Save(Levels.Error, 'Database', `Error retrieving users from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);
+    }
+};
+
+exports.showUser = async (req, res, next) => {
+    
+    // Valida los datos del pedido
+    let logMessage = `${req.method} (${req.originalUrl}) | Retrieve user ${req.params.userId} from ${collectionName}`;  
+    try { 
+        validationHandler(req);
+    }
+    catch (error) {
+        logMessage += ' -> Validation Error';
+        Logger.Save(Levels.Warning, 'Api', logMessage, req.user._id); 
+        return next(new ErrorResponse(error.message, error.statusCode, error.validation));
+    }
+    Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
+    
+    // Obtiene y devuelve los datos del usuario 
+    try {
+        const user = await User.findById(req.params.userId);
+        if(!user) {
+            Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
+            return next(new ErrorResponse('User not found', 404));
+        }
+        Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} retrieved from ${collectionName}`, req.user._id);
+        res.send( {Success: true, Data: user});
+
+    } catch (error) {
+        Logger.Save(Levels.Error, 'Database', `Error retrieving user ${req.params.userId} from ${collectionName} -> ${error.message}`, req.user._id);
+        return next(error);   
     }
 };
 
 exports.storeUser = async (req, res, next) => {
     
     // Valida los datos del pedido
-    let logMessage = `${req.method} (${req.originalUrl}) | Store new document to ${collectionName}`;  
+    let logMessage = `${req.method} (${req.originalUrl}) | Store new user to ${collectionName}`;  
     try { 
         validationHandler(req);
     }
     catch (error) {
+        logMessage += ' -> Validation Error';
         Logger.Save(Levels.Warning, 'Api', logMessage, req.user._id); 
         return next(new ErrorResponse(error.message, error.statusCode, error.validation));
     }
@@ -105,12 +139,89 @@ exports.storeUser = async (req, res, next) => {
         const { FirstName, LastName, Email, Password, Role, CompanyId } = req.body;
         let user = await User.create({ FirstName, LastName, Email, Password, Role, CompanyId });
         user = await User.findOne({_id: user.id});
-        Logger.Save(Levels.Info, 'Database', `Document stored to ${collectionName}`, req.user._id);
+        Logger.Save(Levels.Info, 'Database', `User ${user.id} stored in ${collectionName}`, req.user._id);
         res.send({Success: true, Data: user });
 
     } catch (error) {
-        Logger.Save(Levels.Error, 'Database', `Error storing document -> ${error.message}`, req.user._id);
+        Logger.Save(Levels.Error, 'Database', `Error storing user to ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);
+    }
+};
+
+exports.deleteUser = async (req, res, next) => {
+    
+    // Valida los datos del pedido
+    let logMessage = `${req.method} (${req.originalUrl}) | Delete user ${req.params.userId} from ${collectionName}`;  
+    try { 
+        validationHandler(req);
+    }
+    catch (error) {
+        logMessage += ' -> Validation Error';
+        Logger.Save(Levels.Warning, 'Api', logMessage, req.user._id); 
+        return next(new ErrorResponse(error.message, error.statusCode, error.validation));
+    }
+    Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
+    
+    // Obtiene y elimina el usuario 
+    try {
+        const user = await User.findById(req.params.userId);
+        if(!user) {
+            Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
+            return next(new ErrorResponse('User not found', 404));
+        }
+        await user.remove();
+        Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} deleted from ${collectionName}`, req.user._id);
+        res.send( {Success: true, Data: []});
+
+    } catch (error) {
+        Logger.Save(Levels.Error, 'Database', `Error deleting user ${req.params.userId} from ${collectionName} -> ${error.message}`, req.user._id);
+        return next(error);   
+    }
+};
+
+exports.updateUser = async (req, res, next) => {
+    
+    // Valida los datos del pedido
+    let logMessage = `${req.method} (${req.originalUrl}) | Update user ${req.params.userId} from ${collectionName}`;  
+    try { 
+        validationHandler(req);
+    }
+    catch (error) {
+        logMessage += ' -> Validation Error';
+        Logger.Save(Levels.Warning, 'Api', logMessage, req.user._id); 
+        return next(new ErrorResponse(error.message, error.statusCode, error.validation));
+    }
+    Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id);  
+    
+    // Obtiene y actualiza el usuario 
+    try {
+        const { FirstName, LastName, Email, Password, Role, CompanyId } = req.body;
+        const user = await User.findById(req.params.userId).select('+Password');
+        if(!user) {
+            Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
+            return next(new ErrorResponse('User not found', 404));
+        }
+        if(FirstName) 
+            user.FirstName = FirstName;
+        if(LastName)
+            user.LastName = LastName;
+        if(Email)
+            user.Email = Email;
+        if(Password)
+            user.Password = Password;
+        if(Role) 
+            user.Role = Role;
+        if(CompanyId)
+            user.CompanyId = CompanyId;
+        await user.save();
+        Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} updated in${collectionName}`, req.user._id);
+        userObject = user.toObject();
+        delete userObject.Password;
+        res.send( {Success: true, Data: userObject});
+
+    } catch (error) {
+        Logger.Save(Levels.Error, 'Database', `Error updating user ${req.params.userId} in ${collectionName} -> ${error.message}`, req.user._id);
+        return next(error);   
     }
 };
 
@@ -122,6 +233,7 @@ exports.loginUser = async (req, res, next) => {
         validationHandler(req);
     }
     catch (error) {
+        logMessage += ' -> Validation Error';
         Logger.Save(Levels.Warning, 'Api', logMessage + " -> " + error.message); 
         return next(new ErrorResponse(error.message, error.statusCode, error.validation));
     }
@@ -133,7 +245,7 @@ exports.loginUser = async (req, res, next) => {
         // Verifica email usuario
         const user = await User.findOne({ Email }).select('+Password');
         if(!user) {
-            Logger.Save(Levels.Warning, 'Database', `User ${req.body.Email} not found (Login)`, undefined, req.body.Ip);
+            Logger.Save(Levels.Warning, 'Database', `User ${req.body.Email} not found in ${collectionName} (Login)`, undefined, req.body.Ip);
             return next(new ErrorResponse('Invalid credentials', 401));
         }
         // Verifica password
@@ -154,17 +266,20 @@ exports.loginUser = async (req, res, next) => {
 
 exports.getMe = async (req, res, next) => {
     
-    let logMessage = `${req.method} (${req.originalUrl}) | Retrieve user ${req.user.Email} information`;
+    let logMessage = `${req.method} (${req.originalUrl}) | Retrieve user ${req.user._id} from ${collectionName} (Me)`;
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
     // Obtiene y devuelve los datos del usuario actual
     try {
         const user = await User.findById(req.user._id);
-        Logger.Save(Levels.Info, 'Database', `User ${req.user.Email} information retrieved`, req.user._id);
+        if(!user) {
+            Logger.Save(Levels.Info, 'Database', `User ${req.user._id} not found in ${collectionName}`, req.user._id);
+        }
+        Logger.Save(Levels.Info, 'Database', `User ${req.user._id} retrieved from ${collectionName}`, req.user._id);
         res.send( {Success: true, Data: user});
 
     } catch (error) {
-        Logger.Save(Levels.Error, 'Database', `Error retrieving user ${req.user.Email} information -> ${error.message}`, req.user._id);
+        Logger.Save(Levels.Error, 'Database', `Error retrieving user ${req.user._id} from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);   
     }
 };
@@ -177,6 +292,7 @@ exports.forgotPassword = async (req, res, next) => {
         validationHandler(req);
     }
     catch (error) {
+        logMessage += ' -> Validation Error';
         Logger.Save(Levels.Warning, 'Api', logMessage + " -> " + error.message, undefined, req.body.Ip); 
         return next(new ErrorResponse(error.message, error.statusCode, error.validation));
     }
@@ -186,7 +302,7 @@ exports.forgotPassword = async (req, res, next) => {
         // Verifica email usuario
         const user = await User.findOne({ Email: req.body.Email });
         if(!user) {
-            Logger.Save(Levels.Warning, 'Database', `User ${req.body.Email} not found (Forgot password)`, undefined, req.body.Ip);
+            Logger.Save(Levels.Warning, 'Database', `User ${req.body.Email} not found in ${collectionName} (Forgot password)`, undefined, req.body.Ip);
             return next(new ErrorResponse(`User ${req.body.Email} not found`, 404));
         }
         // Genera el token
@@ -218,6 +334,7 @@ exports.resetPassword = async (req, res, next) => {
         validationHandler(req);
     }
     catch (error) {
+        logMessage += ' -> Validation Error';
         Logger.Save(Levels.Warning, 'Api', logMessage + " -> " + error.message, undefined, req.body.Ip); 
         return next(new ErrorResponse(error.message, error.statusCode, error.validation));
     }
@@ -228,7 +345,7 @@ exports.resetPassword = async (req, res, next) => {
         // Hash del token recibido
         const resetPasswordToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex');
         // Busca el usuario con el token que no haya expirado
-        const user = await User.findOne({ResetPasswordToken: resetPasswordToken, ResetPasswordExpire: {$gt: Date.now()}});
+        const user = await User.findOne({ResetPasswordToken: resetPasswordToken, ResetPasswordExpire: {$gt: Date.now()}}).select();
         // Error si no pudo encontrar un usuario
         if(!user) { 
             Logger.Save(Levels.Warning, 'Database', `Invalid token (Reset Password)`, undefined, req.body.Ip);
@@ -244,7 +361,7 @@ exports.resetPassword = async (req, res, next) => {
         sendTokenResponse(user, res);
 
     } catch (error) {
-        Logger.Save(Levels.Error, 'Database', `Error reseting password -> ${error.message}`, undefined, req.body.Ip);
+        Logger.Save(Levels.Error, 'Database', `Error reseting password for user ${user.Email} -> ${error.message}`, undefined, req.body.Ip);
         return next(error);   
     }
 };

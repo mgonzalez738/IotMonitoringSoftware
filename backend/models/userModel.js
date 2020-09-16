@@ -11,8 +11,8 @@ const UserSchema = new mongoose.Schema({
     Role: { type: String, enum: ['super', 'administrator', 'user', 'guest'], default: 'user' },
     Password: { type: String, required: true, select: false },
     CompanyId: { type: mongoose.Schema.Types.ObjectId },
-    ResetPasswordToken: String,
-    ResetPasswordExpire: Date,
+    ResetPasswordToken: { type: String },
+    ResetPasswordExpire: { type: Date },
     CreatedAt: { type: Date, default: Date.now }   
 });
 UserSchema.index({ LastName: 1, FirstName: 1 });

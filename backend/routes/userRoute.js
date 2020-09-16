@@ -3,7 +3,9 @@ const router = express.Router();
 
 const UserController = require('../controllers/userController');
 const { Authorize } = require('../middleware/authorization');
-const { bodyNameRequired, bodyEmailRequired, bodyPasswordFormat, bodyCompanyIdIsMongoId } = require('../validations/userValidators');
+const { bodyFirstNameRequired, bodyLastNameRequired, bodyEmailRequired, bodyPasswordRequired, bodyCompanyIdOptional, queryEmailValid } = require('../validations/userValidators');
+const { bodyEmailOptional, bodyPasswordOptional } = require('../validations/userValidators');
+const { paramUserIdIsMongoId, querySkipIsInt, queryLimitIsInt } = require('../validations/commonValidators');
 
 // GETS
 
@@ -13,12 +15,18 @@ router.get('/me',
 );
 
 router.get('/:userId',
-    [ Authorize('super', 'administrator') ],
-    //UserController.showUser
+    [ 
+        Authorize('super', 'administrator'),
+        paramUserIdIsMongoId
+    ],
+    UserController.showUser   
 );
 
 router.get('/',
-    [ Authorize('super', 'administrator') ],
+    [ 
+        Authorize('super', 'administrator'),
+        querySkipIsInt, queryLimitIsInt, queryEmailValid
+    ],
     UserController.indexUser
 );
 
@@ -27,7 +35,8 @@ router.get('/',
 router.post('/',
     [ 
         Authorize('super', 'administrator'),
-        bodyNameRequired, bodyEmailRequired, bodyPasswordFormat, bodyCompanyIdIsMongoId
+        bodyFirstNameRequired, bodyLastNameRequired, bodyEmailRequired,
+        bodyPasswordRequired, bodyCompanyIdOptional
     ],
     UserController.storeUser
 );
@@ -35,15 +44,22 @@ router.post('/',
 // PUT
 
 router.put('/:userId',
-    [ Authorize('super', 'administrator') ],
-    //UserController.updateUser
+    [ 
+        Authorize('super', 'administrator'),
+        paramUserIdIsMongoId, bodyEmailOptional,
+        bodyPasswordOptional, bodyCompanyIdOptional
+    ],
+    UserController.updateUser
 );
 
 // DELETE
 
 router.delete('/:userId',
-    [ Authorize('super', 'administrator') ],
-    //UserController.deleteUser
+    [ 
+        Authorize('super', 'administrator'),
+        paramUserIdIsMongoId
+    ],
+    UserController.deleteUser
 );
 
 module.exports = router;
