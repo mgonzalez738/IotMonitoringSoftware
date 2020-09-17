@@ -5,14 +5,14 @@ const CompanyController = require('../controllers/companyController');
 const { Authorize } = require('../middleware/authorization');
 //const { bodyFirstNameRequired, bodyLastNameRequired, bodyEmailRequired, bodyPasswordRequired, bodyCompanyIdOptional, queryEmailValid } = require('../validations/userValidators');
 //const { bodyEmailOptional, bodyPasswordOptional } = require('../validations/userValidators');
-const { paramCompanyIdIsMongoId, querySkipIsInt, queryLimitIsInt, bodyNameRequired } = require('../validations/commonValidators');
+const { paramCompanyIdIsMongoId, querySkipIsInt, queryLimitIsInt, bodyNameRequired, queryPopulateIsBoolean } = require('../validations/commonValidators');
 
 // GETS
 
 router.get('/:companyId',
     [ 
         Authorize('super', 'administrator'),
-        paramCompanyIdIsMongoId
+        paramCompanyIdIsMongoId,queryPopulateIsBoolean
     ],
     CompanyController.showCompany   
 );

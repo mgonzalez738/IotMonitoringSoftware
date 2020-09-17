@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const { sendEmail } = require('../utils/sendEmail')
 const validationHandler = require('../validations/validationHandler');
 const { User } = require('../models/userModel');
+const { Company } = require('../models/companyModel');
 const ErrorResponse = require('../utils/errorResponse');
 const { Levels, Logger } = require('../services/loggerService');
 
@@ -40,17 +41,17 @@ exports.indexUser = async (req, res, next) => {
         // Ordena por LastName FirstName ascendente
         AggregationArray.push({ $sort : { LastName: 1, FirstName: 1 }});
         // Oculta los campos relacionados con el password
-        AggregationArray.push({ $project : { Password: 0, ResetPasswordToken: 0, ResetPasswordExpire:0 }});
+        AggregationArray.push({ $project : { Password: 0, ResetPasswordToken: 0, ResetPasswordExpire:0 }});        
         // Aplica paginacion si esta definido limit o skip
         if(req.query.skip || req.query.limit)
         {
             // Con paginacion
             let facet1Array = [];
             if(req.query.skip) {
-                facet1Array.push({ $skip : parseInt(req.query.skip) });
+                facet1Array.push({ $skip : req.query.skip });
             }
             if(req.query.limit) {
-                facet1Array.push({ $limit : parseInt(req.query.limit) });
+                facet1Array.push({ $limit : req.query.limit });
             }
             // Facet 2: Count
             let facet2Array = [{ $count: "Total" }];
@@ -111,7 +112,7 @@ exports.showUser = async (req, res, next) => {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('User not found', 404));
         }
-        if(req.query.populate && req.query.populate === 'true') {
+        if(req.query.populate) {
             await user.populate('Company', 'Name').execPopulate();
         }
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} retrieved from ${collectionName}`, req.user._id);

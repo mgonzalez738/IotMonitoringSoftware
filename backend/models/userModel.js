@@ -49,7 +49,8 @@ UserSchema.pre('save', async function(next) {
         if(!company) {
             return next(new ErrorResponse('CompanyId not found', 400));
         }
-    }   
+    } 
+    next();  
 });
 
 /** Firma y devuelve el token */

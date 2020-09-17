@@ -93,7 +93,12 @@ exports.showCompany = async (req, res, next) => {
     
     // Obtiene y devuelve los datos de la compania
     try {
-        const company = await Company.findById(req.params.companyId);
+        let company;
+        if(req.query.populate) {
+            company = await Company.findOne({ _id: req.params.companyId}).populate('Users');
+        } else {
+            company = await Company.findOne({ _id: req.params.companyId});
+        }
         if(!company) {
             Logger.Save(Levels.Info, 'Database', `Company ${req.params.companyId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('Company not found', 404));
@@ -151,7 +156,7 @@ exports.deleteCompany = async (req, res, next) => {
     // Obtiene y elimina el usuario 
     try {
         const company = await Company.findById(req.params.companyId);
-        if(!user) {
+        if(!company) {
             Logger.Save(Levels.Info, 'Database', `Company ${req.params.companyId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('Company not found', 404));
         }

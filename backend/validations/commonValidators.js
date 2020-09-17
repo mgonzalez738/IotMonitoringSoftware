@@ -22,6 +22,7 @@ exports.paramCompanyIdIsMongoId = param("companyId")
     .isMongoId()
     .withMessage("Parameter 'companyId' must be a valid hex-encoded representation of a MongoDB ObjectId");
 
+
 // QUERIES
 
 exports.queryFromDateIsISO8601 = query("fromDate")
@@ -33,11 +34,11 @@ exports.queryToDateIsISO8601 = query("toDate")
     .withMessage("Query parameter 'toDate' must be a valid ISO 8601 datetime");
 
 exports.querySkipIsInt = query("skip")
-    .optional().isInt({ min: 0 })
+    .optional().isInt({ min: 0 }).toInt()
     .withMessage("Query parameter 'skip' must be an integer value greater than or equal to zero");
 
 exports.queryLimitIsInt = query("limit")
-    .optional().isInt({ min: 1 })
+    .optional().isInt({ min: 1 }).toInt()
     .withMessage("Query parameter 'limit' must be an integer value greater than zero");
 
 exports.querySortCustom = query("sort")
@@ -51,6 +52,10 @@ exports.querySortCustom = query("sort")
             return true;
         }
     });
+
+exports.queryPopulateIsBoolean = query("populate")
+    .optional().isBoolean().toBoolean()
+    .withMessage("Query parameter 'populate' must be a boolean value");
 
 // BODY
 
