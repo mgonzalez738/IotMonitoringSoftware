@@ -106,10 +106,13 @@ exports.showUser = async (req, res, next) => {
     
     // Obtiene y devuelve los datos del usuario 
     try {
-        const user = await User.findById(req.params.userId);
+        let user = await User.findOne({ _id: req.params.userId })
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('User not found', 404));
+        }
+        if(req.query.populate && req.query.populate === 'true') {
+            await user.populate('Company', 'Name').execPopulate();
         }
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} retrieved from ${collectionName}`, req.user._id);
         res.send( {Success: true, Data: user});
@@ -214,7 +217,7 @@ exports.updateUser = async (req, res, next) => {
         if(CompanyId)
             user.CompanyId = CompanyId;
         await user.save();
-        Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} updated in${collectionName}`, req.user._id);
+        Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} updated in ${collectionName}`, req.user._id);
         userObject = user.toObject();
         delete userObject.Password;
         res.send( {Success: true, Data: userObject});
@@ -345,7 +348,7 @@ exports.resetPassword = async (req, res, next) => {
         // Hash del token recibido
         const resetPasswordToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex');
         // Busca el usuario con el token que no haya expirado
-        const user = await User.findOne({ResetPasswordToken: resetPasswordToken, ResetPasswordExpire: {$gt: Date.now()}}).select();
+        const user = await User.findOne({ResetPasswordToken: resetPasswordToken, ResetPasswordExpire: {$gt: Date.now()}});
         // Error si no pudo encontrar un usuario
         if(!user) { 
             Logger.Save(Levels.Warning, 'Database', `Invalid token (Reset Password)`, undefined, req.body.Ip);

@@ -18,6 +18,10 @@ exports.paramUserIdIsMongoId = param("userId")
     .isMongoId()
     .withMessage("Parameter 'userId' must be a valid hex-encoded representation of a MongoDB ObjectId");
 
+exports.paramCompanyIdIsMongoId = param("companyId")
+    .isMongoId()
+    .withMessage("Parameter 'companyId' must be a valid hex-encoded representation of a MongoDB ObjectId");
+
 // QUERIES
 
 exports.queryFromDateIsISO8601 = query("fromDate")
@@ -50,12 +54,15 @@ exports.querySortCustom = query("sort")
 
 // BODY
 
-
-
-
 exports.bodyNameRequired = body("Name")
     .notEmpty()
     .withMessage("Body key 'Name' must be present and unique in collection");
+
+
+
+
+
+
     
 exports.bodyIsAggregationStageArray = body()
     .custom((value, { req })  => {

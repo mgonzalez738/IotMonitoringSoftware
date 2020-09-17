@@ -1,0 +1,547 @@
+{
+	"info": {
+		"_postman_id": "8d7a074e-5b1d-45eb-935d-794b639bf255",
+		"name": "IotMonitoring",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "SensorsVwsgPipe3",
+			"item": [
+				{
+					"name": "Get SensorVwsgPipe3",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer ",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/sensors/vwsgPipe3/",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"sensors",
+								"vwsgPipe3",
+								""
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "TestCampbell",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "-1",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "skip",
+									"value": "2",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Post SensorVwsgPipe3 TestAzure",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Name\": \"TestAzure\",\r\n    \"Configurations\": [\r\n        {\r\n            \"Date\": \"2020-09-05T05:00:00.000Z\",\r\n            \"InitStrains\": [ 400, 500, 600 ],\r\n            \"InitTemps\": [ 40, 50, 60 ],\r\n            \"ConnectionType\": \"Azure\",\r\n            \"TempCorrEnable\": false,\r\n            \"TempCorrFreeExpan\": false,\r\n            \"TempSensorsCount\": 3,\r\n            \"TeCoeffPipe\": 12,\r\n            \"TeCoeffVwsg\": 10.8\r\n        }\r\n    ],\r\n    \"ConnectionType\": \"Azure\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/api/sensors/vwsgPipe3",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"sensors",
+								"vwsgPipe3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Post SensorVwsgPipe3 TestCampbell",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Name\": \"TestCampbell\",\r\n    \"Configurations\": [\r\n        {\r\n            \"Date\": \"2020-09-05T17:00:00.000Z\",\r\n            \"InitStrains\": [ 400, 500, 600 ],\r\n            \"InitTemps\": [ 40, 50, 60 ],\r\n            \"ConnectionType\": \"Azure\",\r\n            \"TempCorrEnable\": false,\r\n            \"TempCorrFreeExpan\": false,\r\n            \"TempSensorsCount\": 3,\r\n            \"TeCoeffPipe\": 12,\r\n            \"TeCoeffVwsg\": 10.8\r\n        }\r\n    ],\r\n    \"ConnectionType\": \"Campbell\",\r\n    \"Device\": {\r\n        \"DataSource\": { \r\n            \"FileName\": \"TestCampbell.dat\",\r\n            \"StrainCols\": [ 4, 5, 6 ],\r\n            \"Timezone\": -3,\r\n            \"TempCols\": [ 7, 8, 9 ]\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/api/sensors/vwsgPipe3",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"sensors",
+								"vwsgPipe3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete SensorVwsgPipe3",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/api/sensors/vwsgPipe3/5f594c0ce64e5d44143c7ea1",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"sensors",
+								"vwsgPipe3",
+								"5f594c0ce64e5d44143c7ea1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put SensorVwsgPipe3 TestCampbell",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Name\": \"TestCampbell8\",\r\n    \"Configurations\": [\r\n        {\r\n            \"DataSourceFileName\": \"TestCampbell.dat\",\r\n            \"DataSourceStrainCols\": [ 4, 5, 6 ],\r\n            \"DataSourceTimezone\": -3,\r\n            \"DataSourceTempCols\": [ 7, 8, 9 ],\r\n            \"Date\": \"2020-09-05T19:00:00.000Z\",\r\n            \"InitStrains\": [ 400, 500, 600 ],\r\n            \"InitTemps\": [ 40, 50, 60 ],\r\n            \"ConnectionType\": \"Campbell\",\r\n            \"TempCorrEnable\": false,\r\n            \"TempCorrFreeExpan\": false,\r\n            \"TempSensorsCount\": 3,\r\n            \"TeCoeffPipe\": 12,\r\n            \"TeCoeffVwsg\": 10.8\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/api/sensors/vwsgPipe3",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"sensors",
+								"vwsgPipe3"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Post User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"FirstName\": \"Martin\",\r\n    \"LastName\": \"Gonzalez\",\r\n    \"Email\": \"mgonzalez738@gmail.com\",\r\n    \"Password\": \"Care12ta\",\r\n    \"Role\": \"administrator\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/users",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"FirstName\": \"Martin\",\r\n    \"Role\": \"super\",\r\n    \"Password\": \"Care12ta\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/users/5f5eef165d4d1a428ca3decc",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users",
+								"5f5eef165d4d1a428ca3decc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/auth/users/me",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/auth/users/me",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/auth/users/5f594c5de64e5d44143c7ea3",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users",
+								"5f594c5de64e5d44143c7ea3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/auth/users/5f5e899e8ff1b92c605dd7cc",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users",
+								"5f5e899e8ff1b92c605dd7cc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1ddaeb4c-2e4b-4080-9e74-5e2c2e8fe01d",
+								"exec": [
+									"pm.environment.set(\"TOKEN\", pm.response.json().Token)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Email\": \"mgonzalez738@gmail.com\",\r\n    \"Password\": \"Care12ta\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/users/login",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset User Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d6182c6e-5af1-4655-9a92-e6d6d6382273",
+								"exec": [
+									"pm.environment.set(\"TOKEN\", pm.response.json().Token)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Email\": \"mgonzalez738@gmail.com\",\r\n    \"Password\": \"Care34ta\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/users/resetpassword/",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users",
+								"resetpassword",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot User Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "06ad5e1e-0080-40f0-b4d9-e3847bb628b6",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Email\": \"mgonzalez738@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/users/forgotpassword",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"users",
+								"forgotpassword"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
