@@ -20,7 +20,7 @@ exports.Authenticate = async (req, res, next) => {
         // Verifica el token (Lanza error si falla)
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         // Obtiene el usuario con el id del token y lo agrega a req
-        req.user = await User.findById(decoded.id);
+        req.user = await User.findById(decoded.id).select('+ClientId');
         if(!req.user) {
             return next(new ErrorResponse('Authentication failed', 401));
         }
@@ -36,6 +36,13 @@ exports.Authorize = (...roles) => {
     return (req, res, next) => {
         if(!roles.includes(req.user.Role)) {
             return next(new ErrorResponse('Authorization failed', 403));
+        }
+        // Obtiene el client id del body o del usuario
+        if(req.user.Role === 'super') {
+            req.clientId = req.body.ClientId;
+        }
+        else {
+            req.clientId = req.user.ClientId;
         }
         return next();
     }

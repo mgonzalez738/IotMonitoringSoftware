@@ -40,8 +40,8 @@ exports.indexUser = async (req, res, next) => {
         }
         // Ordena por LastName FirstName ascendente
         AggregationArray.push({ $sort : { LastName: 1, FirstName: 1 }});
-        // Oculta los campos relacionados con el password
-        AggregationArray.push({ $project : { Password: 0, ResetPasswordToken: 0, ResetPasswordExpire:0 }});        
+        // Oculta los campos relacionados con el password y cliente
+        AggregationArray.push({ $project : { Password: 0, ResetPasswordToken: 0, ResetPasswordExpire:0, ClientId:0 }});        
         // Aplica paginacion si esta definido limit o skip
         if(req.query.skip || req.query.limit)
         {
@@ -141,8 +141,9 @@ exports.storeUser = async (req, res, next) => {
     // Crea y guarda el usuario
     try {
         const { FirstName, LastName, Email, Password, Role, CompanyId } = req.body;
-        let user = await User.create({ FirstName, LastName, Email, Password, Role, CompanyId });
-        user = await User.findOne({_id: user.id});
+        const ClientId = req.clientId;
+        let user = await User.create({ FirstName, LastName, Email, Password, Role, CompanyId, ClientId });
+        user = await User.findOne({_id: user._id});
         Logger.Save(Levels.Info, 'Database', `User ${user.id} stored in ${collectionName}`, req.user._id);
         res.send({Success: true, Data: user });
 

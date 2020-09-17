@@ -16,6 +16,7 @@ const { DbName, DbConnectionString, DbConnectionOptions} = require('./database/c
 const iotHubEventConsumer = require('./consumers/iotHubEventConsumer');
 const ftpServer = require('./consumers/ftpConsumer');
 
+const clientRoutes = require('./routes/clientRoutes');
 const userRoutes = require('./routes/userRoutes');
 const companyRoutes = require('./routes/companyRoutes');
 const gatewayRoutes = require('./routes/gatewayRoute');
@@ -39,6 +40,7 @@ app.get('/', function (req, res) {
 app.post("/api/auth/users/login", [ bodyEmailRequired ], loginUser); // sin autenticacion
 app.post("/api/auth/users/forgotpassword", [ bodyEmailRequired ], forgotPassword); // sin autenticacion
 app.put("/api/auth/users/resetpassword/:resetToken", [ bodyEmailRequired, bodyPasswordRequired], resetPassword); // sin autenticacion
+app.use("/api/clients", Authenticate, clientRoutes);
 app.use("/api/auth/users", Authenticate, userRoutes);
 app.use("/api/auth/companies", Authenticate, companyRoutes);
 app.use("/api/gateways", gatewayRoutes);

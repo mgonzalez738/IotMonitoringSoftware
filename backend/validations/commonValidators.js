@@ -1,4 +1,4 @@
-const { body, param, query } = require('express-validator');
+const { body, param, query, oneOf, check } = require('express-validator');
 
 // PARAMS
 
@@ -21,6 +21,14 @@ exports.paramUserIdIsMongoId = param("userId")
 exports.paramCompanyIdIsMongoId = param("companyId")
     .isMongoId()
     .withMessage("Parameter 'companyId' must be a valid hex-encoded representation of a MongoDB ObjectId");
+
+exports.paramClientIdIsMongoId = param("clientId")
+    .isMongoId()
+    .withMessage("Parameter 'clientId' must be a valid hex-encoded representation of a MongoDB ObjectId");
+
+exports.paramProjectIdIsMongoId = param("projectId")
+    .isMongoId()
+    .withMessage("Parameter 'projectId' must be a valid hex-encoded representation of a MongoDB ObjectId");
 
 
 // QUERIES
@@ -59,9 +67,24 @@ exports.queryPopulateIsBoolean = query("populate")
 
 // BODY
 
+exports.bodyClientIdRequired = body("ClientId")
+    .custom((value, { req })  => {
+        if(req.user.Role == 'super') {
+            if((value == null) && (req.body.Role !== "super")) {
+                throw new Error("Body parameter 'ClientId' is required");
+            }
+        }
+        return true; 
+    })
+
+
 exports.bodyNameRequired = body("Name")
     .notEmpty()
-    .withMessage("Body key 'Name' must be present and unique in collection");
+    .withMessage("Body key 'Name' must be present and unique");
+
+exports.bodyTagRequired = body("Tag")
+    .notEmpty()
+    .withMessage("Body key 'Tag' must be present and unique");
 
 
 
