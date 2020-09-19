@@ -22,12 +22,18 @@ exports.indexCompany = async (req, res, next) => {
     // Devuelve las companias
     try {
         let AggregationArray = [];
+        // Filtra por ClientId
+        if(req.user.ClientId) {
+            AggregationArray.push({ $match : { ClientId: req.user.ClientId }});
+        }   
         // Filtra por Name si esta definido
         if(req.query.name) {
             AggregationArray.push({ $match : { Name: req.query.name }});
         }
         // Ordena por Name
-        AggregationArray.push({ $sort : { Name: 1 }});
+        AggregationArray.push({ $sort : { Name: 1, ClientId: 1}});
+        // Oculta campo cliente
+        AggregationArray.push({ $project : { ClientId:0 }});        
         // Aplica paginacion si esta definido limit o skip
         if(req.query.skip || req.query.limit)
         {
@@ -91,21 +97,28 @@ exports.showCompany = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Obtiene y devuelve los datos de la compania
+    // Obtiene y devuelve los datos 
     try {
+        // Filtro de busqueda
+        let filter = { _id: req.params.companyId };
+        if(req.user.ClientId) {
+            filter.ClientId = req.user.ClientId;
+        }
+        // Busqueda
         let company;
         if(req.query.populate) {
-            company = await Company.findOne({ _id: req.params.companyId}).populate('Users');
+            company = await Company.findOne(filter).populate('Users');
         } else {
-            company = await Company.findOne({ _id: req.params.companyId});
+            company = await Company.findOne(filter);
         }
         if(!company) {
             Logger.Save(Levels.Info, 'Database', `Company ${req.params.companyId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('Company not found', 404));
         }
+        // Respeuesta
         Logger.Save(Levels.Info, 'Database', `Company ${req.params.companyId} retrieved from ${collectionName}`, req.user._id);
         res.send( {Success: true, Data: company});
-
+    // Error
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error retrieving company ${req.params.companyId} from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);   
@@ -129,7 +142,9 @@ exports.storeCompany = async (req, res, next) => {
     // Crea y guarda el usuario
     try {
         const { Name } = req.body;
-        let company = await Company.create({ Name });
+        const ClientId = req.clientId;
+        let company = await Company.create({ Name, ClientId });
+        company = await Company.findOne({_id: company._id});
         Logger.Save(Levels.Info, 'Database', `Company ${company.id} stored in ${collectionName}`, req.user._id);
         res.send({Success: true, Data: company });
 

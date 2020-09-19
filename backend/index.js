@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 const { Levels, Logger } = require('./services/loggerService');
 
 const { loginUser, forgotPassword, resetPassword } = require('./controllers/userController');
-const { bodyEmailRequired, bodyPasswordRequired } = require('./validations/userValidators');
+const { bodyUserIdRequired, bodyPasswordRequired } = require('./validations/userValidators');
 
 const { DbName, DbConnectionString, DbConnectionOptions} = require('./database/cosmos');
 
@@ -37,9 +37,9 @@ app.get('/', function (req, res) {
 });
 
 // Rutas 
-app.post("/api/auth/users/login", [ bodyEmailRequired ], loginUser); // sin autenticacion
-app.post("/api/auth/users/forgotpassword", [ bodyEmailRequired ], forgotPassword); // sin autenticacion
-app.put("/api/auth/users/resetpassword/:resetToken", [ bodyEmailRequired, bodyPasswordRequired], resetPassword); // sin autenticacion
+app.post("/api/auth/users/login", [ bodyUserIdRequired ], loginUser); // sin autenticacion
+app.post("/api/auth/users/forgotpassword", [ bodyUserIdRequired ], forgotPassword); // sin autenticacion
+app.put("/api/auth/users/resetpassword/:resetToken", [ bodyUserIdRequired, bodyPasswordRequired], resetPassword); // sin autenticacion
 app.use("/api/clients", Authenticate, clientRoutes);
 app.use("/api/auth/users", Authenticate, userRoutes);
 app.use("/api/auth/companies", Authenticate, companyRoutes);

@@ -4,14 +4,17 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const { Company } = require('../models/companyModel');
+const { Client } = require('../models/clientModel');
+
 const ErrorResponse = require('../utils/errorResponse');
 
 /** Users schema */
 const UserSchema = new mongoose.Schema({ 
+    UserId: { type: String, required: true, unique: true },
     FirstName: { type: String, required: true },
     LastName: { type: String, required: true },
-    Email: { type: String, required: true, unique: true },
-    Role: { type: String, enum: ['super', 'administrator', 'user', 'guest'], default: 'user' },
+    Email: { type: String, required: true },
+    Role: { type: String, enum: ['super', 'administrator', 'user', 'guest'], default: 'guest' },
     Password: { type: String, required: true, select: false },
     CompanyId: { type: mongoose.Schema.Types.ObjectId },
     ClientId: { type: mongoose.Schema.Types.ObjectId, select: false },
@@ -28,22 +31,38 @@ UserSchema.virtual('Company', {
     justOne: true
  });
 
+ UserSchema.virtual('Client', {
+    localField: 'ClientId',
+    foreignField: '_id',
+    ref: 'Client',
+    justOne: true
+ });
+
  UserSchema.method('toJSON', function() {
     let user = this.toObject();
-    if(this.populated('Company'))
-    {
+    if(this.populated('Company')) {
         delete user.CompanyId;
+    }
+    if(this.populated('Client')) {
+        delete user.ClientId;
     }
     return user;
   });
 
-/**Encripta el password */
+/** Encripta el password y valida referencias */
 UserSchema.pre('save', async function(next) {
     // Hashea el password antes de guardarlo
     if(this.isModified('Password')) {
         const salt = await bcrypt.genSalt(10);
         this.Password = await bcrypt.hash(this.Password, salt);
     }
+    // Verifica que exista el id de cliente
+    if(this.ClientId && this.isModified('CompanyId')) {
+        const client = await Client.findById(this.ClientId);
+        if(!client) {
+            return next(new ErrorResponse('ClientId not found', 400));
+        }
+    } 
     // Verifica que exista el id de compania
     if(this.CompanyId && this.isModified('CompanyId')) {
         const company = await Company.findById(this.CompanyId);

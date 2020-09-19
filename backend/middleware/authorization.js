@@ -37,12 +37,16 @@ exports.Authorize = (...roles) => {
         if(!roles.includes(req.user.Role)) {
             return next(new ErrorResponse('Authorization failed', 403));
         }
-        // Obtiene el client id del body o del usuario
-        if(req.user.Role === 'super') {
-            req.clientId = req.body.ClientId;
-        }
-        else {
-            req.clientId = req.user.ClientId;
+        return next();
+    }
+}
+
+exports.CheckClientId = async (...roles) => {
+    // Verifica que el usuario tenga asignado un ClientId valido
+    return (req, res, next) => {
+        if(!roles.includes(req.user.Role)) {
+            if(req.user.CientId == null)
+                return next(new ErrorResponse('Authorization failed', 403));
         }
         return next();
     }

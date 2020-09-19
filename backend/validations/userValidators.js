@@ -8,6 +8,10 @@ exports.queryEmailValid = query("email")
 
 // BODY
 
+exports.bodyUserIdRequired = body("UserId")
+    .notEmpty()
+    .withMessage("Body key 'UserId' must be present and unique");
+
 exports.bodyFirstNameRequired = body("FirstName")
     .notEmpty()
     .withMessage("Body key 'FirstName' must be present and unique in collection");

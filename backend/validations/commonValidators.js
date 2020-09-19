@@ -66,8 +66,8 @@ exports.queryPopulateIsBoolean = query("populate")
     .withMessage("Query parameter 'populate' must be a boolean value");
 
 // BODY
-
-exports.bodyClientIdRequired = body("ClientId")
+/*
+exports.ClientIdRequired = body("ClientId")
     .custom((value, { req })  => {
         if(req.user.Role == 'super') {
             if((value == null) && (req.body.Role !== "super")) {
@@ -76,7 +76,7 @@ exports.bodyClientIdRequired = body("ClientId")
         }
         return true; 
     })
-
+*/
 
 exports.bodyNameRequired = body("Name")
     .notEmpty()

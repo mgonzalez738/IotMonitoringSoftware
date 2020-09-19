@@ -5,9 +5,12 @@ const ErrorResponse = require('../utils/errorResponse');
 
 /** Users schema */
 const CompanySchema = new mongoose.Schema({ 
-    Name: { type: String, required: true, unique: true },
+    Name: { type: String, required: true  },
+    ClientId: { type: mongoose.Schema.Types.ObjectId, select: false },
     CreatedAt: { type: Date, default: Date.now }   
 }, { id: false, toJSON: { virtuals: true }, toObject: { virtuals: true }});
+
+CompanySchema.index({ Name: 1, ClientId: 1 }, { unique: true });
 
 CompanySchema.virtual('Users', {
     localField: '_id',

@@ -26,6 +26,14 @@ exports.indexUser = async (req, res, next) => {
     // Devuelve los usuarios
     try {
         let AggregationArray = [];
+        // Filtra por ClientId
+        if(req.user.ClientId) {
+            AggregationArray.push({ $match : { ClientId: req.user.ClientId }});
+        }       
+        // Filtra por UserId si esta definido
+        if(req.query.userid) {
+            AggregationArray.push({ $match : { UserId: req.query.userid }});
+        }
         // Filtra por FirstName si esta definido
         if(req.query.firstname) {
             AggregationArray.push({ $match : { FirstName: req.query.firstname }});
@@ -105,16 +113,25 @@ exports.showUser = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Obtiene y devuelve los datos del usuario 
+
     try {
-        let user = await User.findOne({ _id: req.params.userId })
+        // Filtro de busqueda
+        let filter = { _id: req.params.userId };
+        if(req.user.ClientId) {
+            filter.ClientId = req.user.ClientId;
+        }
+        // Busqueda
+        let user;
+        if(req.query.populate) {
+            user = await User.findOne(filter).populate('Company', 'Name');
+        } else {
+            user = await User.findOne(filter)
+        }
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('User not found', 404));
         }
-        if(req.query.populate) {
-            await user.populate('Company', 'Name').execPopulate();
-        }
+        // Respeuesta
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} retrieved from ${collectionName}`, req.user._id);
         res.send( {Success: true, Data: user});
 
@@ -138,13 +155,19 @@ exports.storeUser = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Crea y guarda el usuario
     try {
-        const { FirstName, LastName, Email, Password, Role, CompanyId } = req.body;
-        const ClientId = req.clientId;
-        let user = await User.create({ FirstName, LastName, Email, Password, Role, CompanyId, ClientId });
+        // Verifica que ClientId este asignado y sea valido
+        if(!req.user.ClientId) {
+            Logger.Save(Levels.Error, 'Database', `ClientId not set in User. Could not store document in ${collectionName}`, req.user._id);
+            return next(new ErrorResponse('User must be asociated to a Client to store documents', 409));
+        }
+        // Crea documento
+        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId } = req.body;
+        const ClientId = req.user.ClientId;
+        let user = await User.create({ UserId, FirstName, LastName, Email, Password, Role, CompanyId, ClientId });
+        // Respuesta
         user = await User.findOne({_id: user._id});
-        Logger.Save(Levels.Info, 'Database', `User ${user.id} stored in ${collectionName}`, req.user._id);
+        Logger.Save(Levels.Info, 'Database', `User ${user._id} stored in ${collectionName}`, req.user._id);
         res.send({Success: true, Data: user });
 
     } catch (error) {
@@ -167,14 +190,26 @@ exports.deleteUser = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Obtiene y elimina el usuario 
     try {
-        const user = await User.findById(req.params.userId);
+        // Filtro de busqueda
+        let filter = { _id: req.params.userId };
+        if(req.user.ClientId) {
+            filter.ClientId = req.user.ClientId;
+        }
+        // Busqueda
+        let user;
+        if(req.query.populate) {
+            user = await User.findOne(filter).populate('Company', 'Name');
+        } else {
+            user = await User.findOne(filter)
+        }
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('User not found', 404));
         }
+        // Borra
         await user.remove();
+        // Respuesta
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} deleted from ${collectionName}`, req.user._id);
         res.send( {Success: true, Data: []});
 
@@ -198,14 +233,22 @@ exports.updateUser = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id);  
     
-    // Obtiene y actualiza el usuario 
     try {
-        const { FirstName, LastName, Email, Password, Role, CompanyId } = req.body;
-        const user = await User.findById(req.params.userId).select('+Password');
+        // Filtro de busqueda
+        let filter = { _id: req.params.userId };
+        if(req.user.ClientId) {
+            filter.ClientId = req.user.ClientId;
+        }
+        // Busqueda
+        let user = await User.findOne(filter).select('+Password');
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('User not found', 404));
         }
+        // Actualizacion
+        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId } = req.body;       
+        if(UserId)
+            user.UserId = UserId;
         if(FirstName) 
             user.FirstName = FirstName;
         if(LastName)
@@ -219,9 +262,9 @@ exports.updateUser = async (req, res, next) => {
         if(CompanyId)
             user.CompanyId = CompanyId;
         await user.save();
+        // Respuesta
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} updated in ${collectionName}`, req.user._id);
-        userObject = user.toObject();
-        delete userObject.Password;
+        user = await User.findOne({_id: user._id});
         res.send( {Success: true, Data: userObject});
 
     } catch (error) {
@@ -233,7 +276,7 @@ exports.updateUser = async (req, res, next) => {
 exports.loginUser = async (req, res, next) => {
     
     // Valida los datos del pedido
-    let logMessage = `${req.method} (${req.originalUrl}) | Login try by user ${req.body.Email})`;  
+    let logMessage = `${req.method} (${req.originalUrl}) | Login try by user ${req.body.UserId})`;  
     try { 
         validationHandler(req);
     }
@@ -246,21 +289,21 @@ exports.loginUser = async (req, res, next) => {
 
     // Verifica los datos de login y devuelve el token
     try {
-        const { Email, Password } = req.body;
+        const { UserId, Password } = req.body;
         // Verifica email usuario
-        const user = await User.findOne({ Email }).select('+Password');
+        const user = await User.findOne({ UserId }).select('+Password');
         if(!user) {
-            Logger.Save(Levels.Warning, 'Database', `User ${req.body.Email} not found in ${collectionName} (Login)`, undefined, req.body.Ip);
+            Logger.Save(Levels.Warning, 'Database', `User ${req.body.UserId} not found in ${collectionName} (Login)`, undefined, req.body.Ip);
             return next(new ErrorResponse('Invalid credentials', 401));
         }
         // Verifica password
         const isMatch = await user.matchPassword(Password);
         if(!isMatch) {
-            Logger.Save(Levels.Warning, 'Database', `Login password for user ${req.body.Email} did not match`, undefined, req.body.Ip);
+            Logger.Save(Levels.Warning, 'Database', `Login password for user ${req.body.UserId} did not match`, undefined, req.body.Ip);
             return next(new ErrorResponse('Invalid credentials', 401));
         }
         // Devuelve el token
-        Logger.Save(Levels.Info, 'Database', `User ${req.body.Email} logged in`, undefined, req.body.Ip);
+        Logger.Save(Levels.Info, 'Database', `User ${req.body.UserId} logged in`, undefined, req.body.Ip);
         sendTokenResponse(user, res);
 
     } catch (error) {
@@ -304,11 +347,11 @@ exports.forgotPassword = async (req, res, next) => {
     Logger.Save(Levels.Debug, 'Api', logMessage);  
 
     try {
-        // Verifica email usuario
-        const user = await User.findOne({ Email: req.body.Email });
+        // Verifica el id de usuario
+        const user = await User.findOne({ UserId: req.body.UserId });
         if(!user) {
-            Logger.Save(Levels.Warning, 'Database', `User ${req.body.Email} not found in ${collectionName} (Forgot password)`, undefined, req.body.Ip);
-            return next(new ErrorResponse(`User ${req.body.Email} not found`, 404));
+            Logger.Save(Levels.Warning, 'Database', `User ${req.body.UserId} not found in ${collectionName} (Forgot password)`, undefined, req.body.Ip);
+            return next(new ErrorResponse(`User ${req.body.UserId} not found`, 404));
         }
         // Genera el token
         const resetToken = user.getResetPasswordToken();
@@ -322,7 +365,7 @@ exports.forgotPassword = async (req, res, next) => {
             message
         });
         // Envia respuesta
-        Logger.Save(Levels.Info, 'Database', `Reset token saved for user ${user.Email}. Email sent`, undefined, req.body.Ip);
+        Logger.Save(Levels.Info, 'Database', `Reset token saved for user ${user.UserId}. Email sent`, undefined, req.body.Ip);
         res.send( {Success: true, Data: 'Token saved and email sent'});
 
     } catch (error) {
@@ -362,11 +405,11 @@ exports.resetPassword = async (req, res, next) => {
         user.ResetPasswordExpire = undefined;
         await user.save();
         // Devuelve el token
-        Logger.Save(Levels.Info, 'Database', `User ${user.Email} password reset`, undefined, req.body.Ip);
+        Logger.Save(Levels.Info, 'Database', `User ${user.UserId} password reset`, undefined, req.body.Ip);
         sendTokenResponse(user, res);
 
     } catch (error) {
-        Logger.Save(Levels.Error, 'Database', `Error reseting password for user ${user.Email} -> ${error.message}`, undefined, req.body.Ip);
+        Logger.Save(Levels.Error, 'Database', `Error reseting password for user ${user.UserId} -> ${error.message}`, undefined, req.body.Ip);
         return next(error);   
     }
 };
