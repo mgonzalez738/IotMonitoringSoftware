@@ -8,9 +8,10 @@ const { Client } = require('../models/clientModel');
 
 const ErrorResponse = require('../utils/errorResponse');
 
-/** Users schema */
+// Esquema
+
 const UserSchema = new mongoose.Schema({ 
-    UserId: { type: String, required: true, unique: true },
+    UserId: { type: String, required: true },
     FirstName: { type: String, required: true },
     LastName: { type: String, required: true },
     Email: { type: String, required: true },
@@ -23,6 +24,9 @@ const UserSchema = new mongoose.Schema({
     CreatedAt: { type: Date, default: Date.now }   
 } , { id: false, toJSON: { virtuals: true }, toObject: { virtuals: true }});
 UserSchema.index({ LastName: 1, FirstName: 1 });
+UserSchema.index({ UserId: 1 }, { unique: true });
+
+// Virtuals
 
 UserSchema.virtual('Company', {
     localField: 'CompanyId',
@@ -38,16 +42,7 @@ UserSchema.virtual('Company', {
     justOne: true
  });
 
- UserSchema.method('toJSON', function() {
-    let user = this.toObject();
-    if(this.populated('Company')) {
-        delete user.CompanyId;
-    }
-    if(this.populated('Client')) {
-        delete user.ClientId;
-    }
-    return user;
-  });
+// Middleware
 
 /** Encripta el password y valida referencias */
 UserSchema.pre('save', async function(next) {
@@ -57,7 +52,7 @@ UserSchema.pre('save', async function(next) {
         this.Password = await bcrypt.hash(this.Password, salt);
     }
     // Verifica que exista el id de cliente
-    if(this.ClientId && this.isModified('CompanyId')) {
+    if(this.ClientId && this.isModified('ClientId')) {
         const client = await Client.findById(this.ClientId);
         if(!client) {
             return next(new ErrorResponse('ClientId not found', 400));
@@ -72,6 +67,20 @@ UserSchema.pre('save', async function(next) {
     } 
     next();  
 });
+
+// Metodos
+
+/** toJSON override */
+UserSchema.method('toJSON', function() {
+    let user = this.toObject();
+    if(this.populated('Company')) {
+        delete user.CompanyId;
+    }
+    if(this.populated('Client')) {
+        delete user.ClientId;
+    }
+    return user;
+  });
 
 /** Firma y devuelve el token */
 UserSchema.methods.getSignedJwtToken = function() {
@@ -92,5 +101,7 @@ UserSchema.methods.getResetPasswordToken = function() {
     this.ResetPasswordExpire = Date.now() + 10 * 60 * 1000;
     return resetToken;
 };
+
+// Modelo
 
 exports.User = mongoose.model('User', UserSchema, 'Users');

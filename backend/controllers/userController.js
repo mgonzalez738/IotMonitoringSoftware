@@ -23,10 +23,10 @@ exports.indexUser = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Devuelve los usuarios
+    // Procesa el pedido
     try {
         let AggregationArray = [];
-        // Filtra por ClientId
+        // Filtra por ClientId del usuario
         if(req.user.ClientId) {
             AggregationArray.push({ $match : { ClientId: req.user.ClientId }});
         }       
@@ -48,8 +48,12 @@ exports.indexUser = async (req, res, next) => {
         }
         // Ordena por LastName FirstName ascendente
         AggregationArray.push({ $sort : { LastName: 1, FirstName: 1 }});
-        // Oculta los campos relacionados con el password y cliente
-        AggregationArray.push({ $project : { Password: 0, ResetPasswordToken: 0, ResetPasswordExpire:0, ClientId:0 }});        
+        // Oculta campos
+        if(req.user.Role === 'super') {
+            AggregationArray.push({ $project : { Password: 0, ResetPasswordToken: 0, ResetPasswordExpire:0 }});        
+        } else {
+            AggregationArray.push({ $project : { Password: 0, ResetPasswordToken: 0, ResetPasswordExpire:0, ClientId:0 }});
+        }
         // Aplica paginacion si esta definido limit o skip
         if(req.query.skip || req.query.limit)
         {
@@ -93,6 +97,7 @@ exports.indexUser = async (req, res, next) => {
             res.send({ Success: true, Data: result });
         }
 
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error retrieving users from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);
@@ -112,20 +117,17 @@ exports.showUser = async (req, res, next) => {
         return next(new ErrorResponse(error.message, error.statusCode, error.validation));
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
-    
-
+  
+    // Procesa el pedido
     try {
-        // Filtro de busqueda
-        let filter = { _id: req.params.userId };
-        if(req.user.ClientId) {
-            filter.ClientId = req.user.ClientId;
-        }
         // Busqueda
         let user;
-        if(req.query.populate) {
-            user = await User.findOne(filter).populate('Company', 'Name');
+        if(!req.query.populate) {
+            user = await User.findById(req.params.userId).select((req.user.Role==='super')?'+ClientId':'');
         } else {
-            user = await User.findOne(filter)
+            user = await User.findById(req.params.userId).select((req.user.Role==='super')?'+ClientId':'')
+                .populate('Company')
+                .populate('Client');
         }
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
@@ -135,6 +137,7 @@ exports.showUser = async (req, res, next) => {
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} retrieved from ${collectionName}`, req.user._id);
         res.send( {Success: true, Data: user});
 
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error retrieving user ${req.params.userId} from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);   
@@ -155,21 +158,17 @@ exports.storeUser = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
+    // Preocesa el pedido
     try {
-        // Verifica que ClientId este asignado y sea valido
-        if(!req.user.ClientId) {
-            Logger.Save(Levels.Error, 'Database', `ClientId not set in User. Could not store document in ${collectionName}`, req.user._id);
-            return next(new ErrorResponse('User must be asociated to a Client to store documents', 409));
-        }
         // Crea documento
         const { UserId, FirstName, LastName, Email, Password, Role, CompanyId } = req.body;
-        const ClientId = req.user.ClientId;
+        const { ClientId } = req.user;
         let user = await User.create({ UserId, FirstName, LastName, Email, Password, Role, CompanyId, ClientId });
         // Respuesta
-        user = await User.findOne({_id: user._id});
         Logger.Save(Levels.Info, 'Database', `User ${user._id} stored in ${collectionName}`, req.user._id);
-        res.send({Success: true, Data: user });
-
+        res.send({Success: true, Data: { _id: user._id }});
+    
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error storing user to ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);
@@ -190,19 +189,10 @@ exports.deleteUser = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
+    // Procesa el pedido
     try {
-        // Filtro de busqueda
-        let filter = { _id: req.params.userId };
-        if(req.user.ClientId) {
-            filter.ClientId = req.user.ClientId;
-        }
         // Busqueda
-        let user;
-        if(req.query.populate) {
-            user = await User.findOne(filter).populate('Company', 'Name');
-        } else {
-            user = await User.findOne(filter)
-        }
+        let user = await User.findById(req.params.userId);
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('User not found', 404));
@@ -211,8 +201,9 @@ exports.deleteUser = async (req, res, next) => {
         await user.remove();
         // Respuesta
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} deleted from ${collectionName}`, req.user._id);
-        res.send( {Success: true, Data: []});
-
+        res.send( {Success: true, Data: {}});
+   
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error deleting user ${req.params.userId} from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);   
@@ -233,20 +224,17 @@ exports.updateUser = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id);  
     
+    // Procesa el pedido
     try {
-        // Filtro de busqueda
-        let filter = { _id: req.params.userId };
-        if(req.user.ClientId) {
-            filter.ClientId = req.user.ClientId;
-        }
         // Busqueda
-        let user = await User.findOne(filter).select('+Password');
+        let user = await User.findById(req.params.userId);
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('User not found', 404));
         }
         // Actualizacion
-        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId } = req.body;       
+        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId } = req.body; 
+        const { userRole, ClientId } = req.user;      
         if(UserId)
             user.UserId = UserId;
         if(FirstName) 
@@ -261,11 +249,12 @@ exports.updateUser = async (req, res, next) => {
             user.Role = Role;
         if(CompanyId)
             user.CompanyId = CompanyId;
+        if(userRole === 'super')
+            user.ClientId = ClientId
         await user.save();
         // Respuesta
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} updated in ${collectionName}`, req.user._id);
-        user = await User.findOne({_id: user._id});
-        res.send( {Success: true, Data: userObject});
+        res.send( {Success: true, Data: { _id: user._id }});
 
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error updating user ${req.params.userId} in ${collectionName} -> ${error.message}`, req.user._id);
