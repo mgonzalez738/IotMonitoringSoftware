@@ -20,7 +20,7 @@ exports.Authenticate = async (req, res, next) => {
         // Verifica el token (Lanza error si falla)
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         // Obtiene el usuario con el id del token y lo agrega a req
-        req.user = await User.findById(decoded.id).select('+ClientId');
+        req.user = await User.findById(decoded.id);
         if(!req.user) {
             return next(new ErrorResponse('Authentication failed', 401));
         }

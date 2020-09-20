@@ -3,8 +3,6 @@ const router = express.Router();
 
 const CompanyController = require('../controllers/companyController');
 const { Authorize } = require('../middleware/authorization');
-//const { bodyFirstNameRequired, bodyLastNameRequired, bodyEmailRequired, bodyPasswordRequired, bodyCompanyIdOptional, queryEmailValid } = require('../validations/userValidators');
-//const { bodyEmailOptional, bodyPasswordOptional } = require('../validations/userValidators');
 const { paramCompanyIdIsMongoId, querySkipIsInt, queryLimitIsInt, bodyNameRequired, queryPopulateIsBoolean } = require('../validations/commonValidators');
 
 // GETS
@@ -12,7 +10,7 @@ const { paramCompanyIdIsMongoId, querySkipIsInt, queryLimitIsInt, bodyNameRequir
 router.get('/:companyId',
     [ 
         Authorize('super', 'administrator'),
-        paramCompanyIdIsMongoId,queryPopulateIsBoolean
+        paramCompanyIdIsMongoId, queryPopulateIsBoolean
     ],
     CompanyController.showCompany   
 );

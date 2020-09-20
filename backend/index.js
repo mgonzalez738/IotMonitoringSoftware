@@ -19,6 +19,7 @@ const ftpServer = require('./consumers/ftpConsumer');
 const clientRoutes = require('./routes/clientRoutes');
 const userRoutes = require('./routes/userRoutes');
 const companyRoutes = require('./routes/companyRoutes');
+const projectRoutes = require('./routes/projectRoutes');
 const gatewayRoutes = require('./routes/gatewayRoute');
 const sensorVwsgPipe3Routes = require('./routes/sensorVwsgPipe3Routes');
 const { Authenticate } = require('./middleware/authorization');
@@ -40,9 +41,10 @@ app.get('/', function (req, res) {
 app.post("/api/auth/users/login", [ bodyUserIdRequired ], loginUser); // sin autenticacion
 app.post("/api/auth/users/forgotpassword", [ bodyUserIdRequired ], forgotPassword); // sin autenticacion
 app.put("/api/auth/users/resetpassword/:resetToken", [ bodyUserIdRequired, bodyPasswordRequired], resetPassword); // sin autenticacion
-app.use("/api/clients", Authenticate, clientRoutes);
 app.use("/api/auth/users", Authenticate, userRoutes);
+app.use("/api/clients", Authenticate, clientRoutes);
 app.use("/api/auth/companies", Authenticate, companyRoutes);
+app.use("/api/projects", Authenticate, projectRoutes);
 app.use("/api/gateways", gatewayRoutes);
 app.use("/api/sensors/vwsgPipe3", Authenticate, sensorVwsgPipe3Routes);
 

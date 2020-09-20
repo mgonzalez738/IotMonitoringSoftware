@@ -5,6 +5,7 @@ const crypto = require('crypto');
 
 const { Company } = require('../models/companyModel');
 const { Client } = require('../models/clientModel');
+const { Project } = require('../models/projectModel');
 
 const ErrorResponse = require('../utils/errorResponse');
 
@@ -18,6 +19,7 @@ const UserSchema = new mongoose.Schema({
     Role: { type: String, enum: ['super', 'administrator', 'user', 'guest'], default: 'guest' },
     Password: { type: String, required: true, select: false },
     CompanyId: { type: mongoose.Schema.Types.ObjectId },
+    ProjectsId: [{ type: mongoose.Schema.Types.ObjectId }],
     ClientId: { type: mongoose.Schema.Types.ObjectId },
     ResetPasswordToken: { type: String, select: false },
     ResetPasswordExpire: { type: Date, select: false },
@@ -40,6 +42,13 @@ UserSchema.virtual('Company', {
     foreignField: '_id',
     ref: 'Client',
     justOne: true
+ });
+
+ UserSchema.virtual('Projects', {
+    localField: 'ProjectsId',
+    foreignField: '_id',
+    ref: 'Project',
+    justOne: false
  });
 
 // Middleware
@@ -65,6 +74,15 @@ UserSchema.pre('save', async function(next) {
             return next(new ErrorResponse('CompanyId not found', 400));
         }
     } 
+    // Verifica que equistan los id de proyecto
+    if(this.ProjectsId && this.isModified('ProjectsId')) {
+        for(i=0; i<this.ProjectsId.length; i++) {
+            const project = await Project.findById(this.ProjectsId[i]);
+            if(!project) {
+                return next(new ErrorResponse('ProjectId not found', 400));
+            }
+        }
+    } 
     next();  
 });
 
@@ -78,6 +96,9 @@ UserSchema.method('toJSON', function() {
     }
     if(this.Client) {
         delete user.ClientId;
+    }
+    if(this.Projects) {
+        delete user.ProjectsId;
     }
     return user;
   });

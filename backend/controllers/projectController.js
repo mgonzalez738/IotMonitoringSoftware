@@ -19,15 +19,27 @@ exports.indexProject = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Devuelve las companias
+    // Procesa el pedido
     try {
         let AggregationArray = [];
+        // Filtra por ClientId del usuario
+        if(req.user.ClientId) {
+            AggregationArray.push({ $match : { ClientId: req.user.ClientId }});
+        } 
+        // Filtra por Rol de user y guest
+        if((req.user.Role !== 'super') && (req.user.Role !== 'administrator')) {
+            AggregationArray.push({ $match : { _id: { $in: req.user.ProjectsId } }});
+        }  
         // Filtra por Name si esta definido
         if(req.query.name) {
             AggregationArray.push({ $match : { Name: req.query.name }});
         }
         // Ordena por Name
-        AggregationArray.push({ $sort : { Name: 1 }});
+        AggregationArray.push({ $sort : { Name: 1, ClientId: 1}});
+         // Oculta campos
+         if(req.user.Role !== 'super') {
+            AggregationArray.push({ $project : { ClientId:0 }});        
+        }   
         // Aplica paginacion si esta definido limit o skip
         if(req.query.skip || req.query.limit)
         {
@@ -71,6 +83,7 @@ exports.indexProject = async (req, res, next) => {
             res.send({ Success: true, Data: result });
         }
 
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error retrieving projects from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);
@@ -91,21 +104,40 @@ exports.showProject = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Obtiene y devuelve los datos de la compania
+    // Procesa el pedido 
     try {
+        // Verifica que si es user o guest pertenezca al proyecto
+        if((req.user.Role !=='super') && (req.user.Role !=='administrator')) {
+            if(!req.user.ProjectsId.includes(req.params.projectId)) {
+                Logger.Save(Levels.Error, 'Database', `User ${req.user._id} can not get this project info`, req.user._id);
+                return next(new ErrorResponse('Authorization failed', 403));
+            }
+        } 
+        // Busqueda
         let project;
+        if(req.user.Role ==='super') { // Oculta ClientId sino es super
+            project = await Project.findById(req.params.projectId)
+        }
+        else {
+            project = await Project.findById(req.params.projectId).select('-ClientId');
+        }
         if(req.query.populate) {
-            project = await Project.findOne({ _id: req.params.projectId}).populate('Users');
-        } else {
-            project = await Project.findOne({ _id: req.params.projectId});
+            if(req.user.Role ==='super') { // Populate Client si es super
+                await project.populate('Client').execPopulate();
+            }
+            if((req.user.Role ==='super') || (req.user.Role ==='administrator')) { // Populate Users si es super o administrator
+                await project.populate('Users').execPopulate();
+            }
         }
         if(!project) {
             Logger.Save(Levels.Info, 'Database', `Project ${req.params.projectId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('Project not found', 404));
         }
+        // Respuesta
         Logger.Save(Levels.Info, 'Database', `Project ${req.params.projectId} retrieved from ${collectionName}`, req.user._id);
         res.send( {Success: true, Data: project});
-
+    
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error retrieving project ${req.params.projectId} from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);   
@@ -126,13 +158,19 @@ exports.storeProject = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Crea y guarda el usuario
+    // Procesa el pedido
     try {
         const { Name, UsersId } = req.body;
-        let project = await Project.create({ Name, UsersId });
-        Logger.Save(Levels.Info, 'Database', `Project ${project._id} stored in ${collectionName}`, req.user._id);
-        res.send({Success: true, Data: project });
+        const { ClientId } = req.user;
+        if(!ClientId) {
+            Logger.Save(Levels.Error, 'Database', `Error storing project -> ClientId undefined`, req.user._id);
+            return next(new ErrorResponse('ClientId undefined', 400));
+        }
+        let project = await Project.create({ Name, UsersId, ClientId });
+        Logger.Save(Levels.Info, 'Database', `Project ${project.id} stored in ${collectionName}`, req.user._id);
+        res.send({Success: true, Data: { _id: project._id } });
 
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error storing project to ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);
@@ -153,17 +191,21 @@ exports.deleteProject = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Obtiene y elimina el usuario 
+    // Procesa el pedido
     try {
-        const project = await Project.findById(req.params.projectId);
+        // Busqueda
+        let project = await Project.findById(req.params.projectId);
         if(!project) {
             Logger.Save(Levels.Info, 'Database', `Project ${req.params.projectId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('Project not found', 404));
         }
+        // Borra
         await project.remove();
+        // Respuesta
         Logger.Save(Levels.Info, 'Database', `Project ${req.params.projectId} deleted from ${collectionName}`, req.user._id);
-        res.send( {Success: true, Data: []});
+        res.send( {Success: true, Data: {} });
 
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error deleting project ${req.params.projectId} from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);   
@@ -184,22 +226,26 @@ exports.updateProject = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id);  
     
-    // Obtiene y actualiza el usuario 
+    // Procesa el pedido
     try {
-        const { Name, UsersId } = req.body;
-        const project = await Project.findById(req.params.projectId);
+        // Busqueda
+        let project = await Project.findById(req.params.projectId);
         if(!project) {
             Logger.Save(Levels.Info, 'Database', `Project ${req.params.projectId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('Project not found', 404));
         }
+        // Actualizacion
+        const { Name, UsersId } = req.body;
         if(Name) 
             project.Name = Name;
         if(UsersId) 
             project.UsersId = UsersId;
         await project.save();
+        // Respuesta
         Logger.Save(Levels.Info, 'Database', `Project ${req.params.projectId} updated in ${collectionName}`, req.user._id);
-        res.send( {Success: true, Data: project});
+        res.send( {Success: true, Data: { _id: project._id } });
 
+    // Error inesperado
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error updating project ${req.params.userId} in ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);   

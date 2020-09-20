@@ -29,7 +29,11 @@ exports.indexUser = async (req, res, next) => {
         // Filtra por ClientId del usuario
         if(req.user.ClientId) {
             AggregationArray.push({ $match : { ClientId: req.user.ClientId }});
-        }       
+        } 
+        // Filtra usuarios Super
+        if(req.user.Role !== 'super' ) {
+            AggregationArray.push({ $match : { Role: { $ne: 'super' } }});
+        }      
         // Filtra por UserId si esta definido
         if(req.query.userid) {
             AggregationArray.push({ $match : { UserId: req.query.userid }});
@@ -127,11 +131,17 @@ exports.showUser = async (req, res, next) => {
         } else {
             user = await User.findById(req.params.userId).select((req.user.Role==='super')?'':'-ClientId')
                 .populate('Company')
+                .populate('Projects')
                 .populate('Client');
         }
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('User not found', 404));
+        }
+        if((user.Role ==='super') && (req.user.Role !== 'super'))
+        {
+            Logger.Save(Levels.Error, 'Database', `User ${req.params.userId} can not get super user`, req.user._id);
+            return next(new ErrorResponse('Authorization failed', 403));
         }
         // Respeuesta
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} retrieved from ${collectionName}`, req.user._id);
@@ -161,13 +171,18 @@ exports.storeUser = async (req, res, next) => {
     // Preocesa el pedido
     try {
         // Crea documento
-        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId } = req.body;
+        const { UserId, FirstName, LastName, Email, Password, Role, ProjectsId, CompanyId } = req.body;
         const { ClientId } = req.user;
         if(!ClientId && (Role !== 'super')){
             Logger.Save(Levels.Error, 'Database', `Could not create an user without having a ClientId assigned`, req.user._id);
             return next(new ErrorResponse('Error crating user without ClientId', 400));
         }
-        let user = await User.create({ UserId, FirstName, LastName, Email, Password, Role, CompanyId, ClientId });
+        if((Role ==='super') && (req.user.Role !== 'super'))
+        {
+            Logger.Save(Levels.Error, 'Database', `User ${req.params.userId} can not create super user`, req.user._id);
+            return next(new ErrorResponse('Authorization failed', 403));
+        }
+        let user = await User.create({ UserId, FirstName, LastName, Email, Password, Role, ProjectsId, CompanyId, ClientId });
         // Respuesta
         Logger.Save(Levels.Info, 'Database', `User ${user._id} stored in ${collectionName}`, req.user._id);
         res.send({Success: true, Data: { _id: user._id }});
@@ -200,6 +215,11 @@ exports.deleteUser = async (req, res, next) => {
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('User not found', 404));
+        }
+        if((user.Role ==='super') && (req.user.Role !== 'super'))
+        {
+            Logger.Save(Levels.Error, 'Database', `User ${req.params.userId} can not delete super user`, req.user._id);
+            return next(new ErrorResponse('Authorization failed', 403));
         }
         // Borra
         await user.remove();
@@ -238,11 +258,16 @@ exports.updateUser = async (req, res, next) => {
         }
         if((user.Role ==='super') && (req.user.Role === 'administrator'))
         {
-            Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} can not edit super user`, req.user._id);
+            Logger.Save(Levels.Error, 'Database', `User ${req.params.userId} can not edit super user`, req.user._id);
             return next(new ErrorResponse('Authorization failed', 403));
         }
+        if((user.Role ==='super') && (req.body.ProjectsId))
+        {
+            Logger.Save(Levels.Error, 'Database', `User ${req.params.userId} can not add ProjectsId to super user`, req.user._id);
+            return next(new ErrorResponse('Can not add ProjectsId to super user', 400));
+        }
         // Actualizacion
-        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId, ClientId } = req.body; 
+        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId, ProjectsId, ClientId } = req.body; 
         if(UserId)
             user.UserId = UserId;
         if(FirstName) 
@@ -257,6 +282,8 @@ exports.updateUser = async (req, res, next) => {
             user.Role = Role;
         if(CompanyId)
             user.CompanyId = CompanyId;
+        if(ProjectsId)
+            user.ProjectsId = ProjectsId;
         if((ClientId !== undefined) && (req.user.Role === 'super')) {
             if(ClientId === null) {
                 user.ClientId = undefined;

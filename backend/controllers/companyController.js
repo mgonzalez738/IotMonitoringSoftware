@@ -158,7 +158,6 @@ exports.storeCompany = async (req, res, next) => {
             return next(new ErrorResponse('ClientId undefined', 400));
         }
         let company = await Company.create({ Name, ClientId });
-        company = await Company.findOne({_id: company._id});
         Logger.Save(Levels.Info, 'Database', `Company ${company.id} stored in ${collectionName}`, req.user._id);
         res.send({Success: true, Data: { _id: company._id } });
 

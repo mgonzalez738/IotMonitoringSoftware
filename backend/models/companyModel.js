@@ -9,7 +9,7 @@ const ErrorResponse = require('../utils/errorResponse');
 
 const CompanySchema = new mongoose.Schema({ 
     Name: { type: String, required: true  },
-    ClientId: { type: mongoose.Schema.Types.ObjectId },
+    ClientId: { type: mongoose.Schema.Types.ObjectId, required: true },
     CreatedAt: { type: Date, default: Date.now }   
 }, { id: false, toJSON: { virtuals: true }, toObject: { virtuals: true }});
 CompanySchema.index({ Name: 1, ClientId: 1 }, { unique: true });
