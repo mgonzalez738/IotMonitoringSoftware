@@ -9,4 +9,22 @@ const ClientSchema = new mongoose.Schema({
     CreatedAt: { type: Date, default: Date.now }   
 }, { id: false, toJSON: { virtuals: true }, toObject: { virtuals: true }});
 
+// Virtuals
+
+ClientSchema.virtual('Users', {
+    localField: '_id',
+    foreignField: 'ClientId',
+    ref: 'User',
+    justOne: false
+ });
+
+ ClientSchema.virtual('Companies', {
+    localField: '_id',
+    foreignField: 'CompanyId',
+    ref: 'Company',
+    justOne: false
+ });
+
+ // Modelo
+
 exports.Client = mongoose.model('Client', ClientSchema, 'Clients');

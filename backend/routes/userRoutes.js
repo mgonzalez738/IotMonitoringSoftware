@@ -5,7 +5,7 @@ const UserController = require('../controllers/userController');
 const { Authorize } = require('../middleware/authorization');
 const { bodyFirstNameRequired, bodyLastNameRequired, bodyEmailRequired, bodyPasswordRequired, bodyCompanyIdOptional, queryEmailValid } = require('../validations/userValidators');
 const { bodyEmailOptional, bodyPasswordOptional } = require('../validations/userValidators');
-const { paramUserIdIsMongoId, querySkipIsInt, queryLimitIsInt, queryPopulateIsBoolean } = require('../validations/commonValidators');
+const { paramUserIdIsMongoId, querySkipIsInt, queryLimitIsInt, queryPopulateIsBoolean, bodyClientIdOptionalNull } = require('../validations/commonValidators');
 
 // GETS
 
@@ -47,7 +47,7 @@ router.put('/:userId',
     [ 
         Authorize('super', 'administrator'),
         paramUserIdIsMongoId, bodyEmailOptional,
-        bodyPasswordOptional, bodyCompanyIdOptional
+        bodyPasswordOptional, bodyCompanyIdOptional, bodyClientIdOptionalNull
     ],
     UserController.updateUser
 );

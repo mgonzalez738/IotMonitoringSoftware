@@ -232,9 +232,13 @@ exports.updateUser = async (req, res, next) => {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('User not found', 404));
         }
+        if((user.Role ==='super') && (req.user.Role === 'administrator'))
+        {
+            Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} can not edit super user`, req.user._id);
+            return next(new ErrorResponse('Authorization failed', 403));
+        }
         // Actualizacion
-        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId } = req.body; 
-        const { userRole, ClientId } = req.user;      
+        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId, ClientId } = req.body; 
         if(UserId)
             user.UserId = UserId;
         if(FirstName) 
@@ -249,8 +253,13 @@ exports.updateUser = async (req, res, next) => {
             user.Role = Role;
         if(CompanyId)
             user.CompanyId = CompanyId;
-        if(userRole === 'super')
-            user.ClientId = ClientId
+        if((ClientId !== undefined) && (req.user.Role === 'super')) {
+            if(ClientId === null) {
+                user.ClientId = undefined;
+            } else {
+                user.ClientId = ClientId;
+            }
+        }
         await user.save();
         // Respuesta
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} updated in ${collectionName}`, req.user._id);
@@ -308,7 +317,15 @@ exports.getMe = async (req, res, next) => {
     
     // Obtiene y devuelve los datos del usuario actual
     try {
-        const user = await User.findById(req.user._id);
+        // Busqueda
+        let user;
+        if(!req.query.populate) {
+            user = await User.findOne({ _id: req.user._id }).select((req.user.Role==='super')?'+ClientId':'');
+        } else {
+            user = await User.findOne({ _id: req.user._id }).select((req.user.Role==='super')?'+ClientId':'')
+                .populate('Company')
+                .populate('Client');
+        }
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.user._id} not found in ${collectionName}`, req.user._id);
         }

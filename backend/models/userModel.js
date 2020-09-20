@@ -73,10 +73,10 @@ UserSchema.pre('save', async function(next) {
 /** toJSON override */
 UserSchema.method('toJSON', function() {
     let user = this.toObject();
-    if(this.populated('Company')) {
+    if(this.Company) {
         delete user.CompanyId;
     }
-    if(this.populated('Client')) {
+    if(this.Client) {
         delete user.ClientId;
     }
     return user;

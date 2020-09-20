@@ -66,17 +66,14 @@ exports.queryPopulateIsBoolean = query("populate")
     .withMessage("Query parameter 'populate' must be a boolean value");
 
 // BODY
-/*
-exports.ClientIdRequired = body("ClientId")
-    .custom((value, { req })  => {
-        if(req.user.Role == 'super') {
-            if((value == null) && (req.body.Role !== "super")) {
-                throw new Error("Body parameter 'ClientId' is required");
-            }
-        }
-        return true; 
-    })
-*/
+
+exports.bodyClientIdOptionalNull = oneOf([
+    body("ClientId").optional().custom((value) => {
+        if(value === null) 
+            return true; 
+    }),
+    body("ClientId").optional().isMongoId()
+], "Body key 'ClientId' must be a valid hex-encoded representation of a MongoDB ObjectId");
 
 exports.bodyNameRequired = body("Name")
     .notEmpty()
@@ -86,6 +83,9 @@ exports.bodyTagRequired = body("Tag")
     .notEmpty()
     .withMessage("Body key 'Tag' must be present and unique");
 
+exports.bodyClientIdOptional = body("ClientId")
+    .optional().isMongoId()
+    .withMessage("Body key 'ClientId' must be a valid hex-encoded representation of a MongoDB ObjectId");
 
 
 

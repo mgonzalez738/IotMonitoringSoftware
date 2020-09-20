@@ -19,7 +19,7 @@ exports.indexClient = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Devuelve los documentos
+    // Procesa el pedido
     try {
         let AggregationArray = [];
         // Filtra por Name si esta definido
@@ -75,6 +75,7 @@ exports.indexClient = async (req, res, next) => {
             res.send({ Success: true, Data: result });
         }
 
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error retrieving clients from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);
@@ -95,21 +96,26 @@ exports.showClient = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Devuelve el documento
+    // Procesa el pedido
     try {
+        // Busqueda
         let client;
-        if(req.query.populate) {
-            client = await Client.findOne({ _id: req.params.clientId});
+        if(!req.query.populate) {
+            client = await Client.findById(req.params.clientId);
         } else {
-            client = await Client.findOne({ _id: req.params.clientId});
+            client = await Client.findById(req.params.clientId)
+                .populate('Users')
+                .populate('Companies');
         }
         if(!client) {
             Logger.Save(Levels.Info, 'Database', `Client ${req.params.clientId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('Client not found', 404));
         }
+        // Respuesta
         Logger.Save(Levels.Info, 'Database', `Client ${req.params.clientId} retrieved from ${collectionName}`, req.user._id);
         res.send( {Success: true, Data: client});
 
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error retrieving client ${req.params.clientId} from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);   
@@ -130,13 +136,14 @@ exports.storeClient = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Guarda el documento
+    // Procesa el pedido
     try {
         const { Name, Tag } = req.body;
         let client = await Client.create({ Name, Tag });
         Logger.Save(Levels.Info, 'Database', `Client ${client._id} stored in ${collectionName}`, req.user._id);
-        res.send({Success: true, Data: client });
+        res.send({Success: true, Data: { _id: client._id } });
 
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error storing client to ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);
@@ -157,17 +164,21 @@ exports.deleteClient = async (req, res, next) => {
     }
     Logger.Save(Levels.Debug, 'Api', logMessage, req.user._id); 
     
-    // Elimina el documento
+    // Procesa el pedido
     try {
+        // Busqueda
         const client = await Client.findById(req.params.clientId);
         if(!client) {
             Logger.Save(Levels.Info, 'Database', `Client ${req.params.clientId} not found in ${collectionName}`, req.user._id);
             return next(new ErrorResponse('Client not found', 404));
         }
+        // Borra
         await client.remove();
+        // Respuesta
         Logger.Save(Levels.Info, 'Database', `Client ${req.params.clientId} deleted from ${collectionName}`, req.user._id);
-        res.send( {Success: true, Data: []});
+        res.send( {Success: true, Data: {}});
 
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error deleting client ${req.params.clientId} from ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);   
@@ -202,8 +213,9 @@ exports.updateClient = async (req, res, next) => {
             client.Tag = Tag;
         await client.save();
         Logger.Save(Levels.Info, 'Database', `Client ${req.params.clientId} updated in ${collectionName}`, req.user._id);
-        res.send( {Success: true, Data: client});
+        res.send( {Success: true, Data: { _id: client._id } });
 
+    // Errores inesperados
     } catch (error) {
         Logger.Save(Levels.Error, 'Database', `Error updating client ${req.params.userId} in ${collectionName} -> ${error.message}`, req.user._id);
         return next(error);   
