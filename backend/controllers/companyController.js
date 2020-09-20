@@ -104,11 +104,21 @@ exports.showCompany = async (req, res, next) => {
     try {
         // Busqueda
         let company;
-        if(!req.query.populate) {
-            company = await Company.findById(req.params.companyId).select((req.user.Role==='super')?'+ClientId':'');
+        if(req.user.Role ==='super'){
+            if(!req.query.populate) {
+                company = await Company.findById(req.params.companyId);
+            } else {
+                company = await Company.findById(req.params.companyId)
+                    .populate('Client')
+                    .populate('Users');
+            }
         } else {
-            company = await Company.findById(req.params.companyId).select((req.user.Role==='super')?'+ClientId':'')
-                .populate('Users')
+            if(!req.query.populate) {
+                company = await Company.findById(req.params.companyId).select('-ClientId');
+            } else {
+                company = await Company.findById(req.params.companyId).select('-ClientId')
+                    .populate('Users');
+            }
         }
         if(!company) {
             Logger.Save(Levels.Info, 'Database', `Company ${req.params.companyId} not found in ${collectionName}`, req.user._id);

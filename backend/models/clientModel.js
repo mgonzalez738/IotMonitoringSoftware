@@ -20,7 +20,7 @@ ClientSchema.virtual('Users', {
 
  ClientSchema.virtual('Companies', {
     localField: '_id',
-    foreignField: 'CompanyId',
+    foreignField: 'ClientId',
     ref: 'Company',
     justOne: false
  });

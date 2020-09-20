@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema({
     Role: { type: String, enum: ['super', 'administrator', 'user', 'guest'], default: 'guest' },
     Password: { type: String, required: true, select: false },
     CompanyId: { type: mongoose.Schema.Types.ObjectId },
-    ClientId: { type: mongoose.Schema.Types.ObjectId, select: false },
+    ClientId: { type: mongoose.Schema.Types.ObjectId },
     ResetPasswordToken: { type: String, select: false },
     ResetPasswordExpire: { type: Date, select: false },
     CreatedAt: { type: Date, default: Date.now }   

@@ -9,13 +9,20 @@ const ErrorResponse = require('../utils/errorResponse');
 
 const CompanySchema = new mongoose.Schema({ 
     Name: { type: String, required: true  },
-    ClientId: { type: mongoose.Schema.Types.ObjectId, select: false },
+    ClientId: { type: mongoose.Schema.Types.ObjectId },
     CreatedAt: { type: Date, default: Date.now }   
 }, { id: false, toJSON: { virtuals: true }, toObject: { virtuals: true }});
 CompanySchema.index({ Name: 1, ClientId: 1 }, { unique: true });
 
 // Virtuals
 
+CompanySchema.virtual('Client', {
+    localField: 'ClientId',
+    foreignField: '_id',
+    ref: 'Client',
+    justOne: true
+ });
+ 
 CompanySchema.virtual('Users', {
     localField: '_id',
     foreignField: 'CompanyId',
@@ -46,6 +53,17 @@ CompanySchema.pre('remove', async function(next) {
     }
     next();   
 });
+
+// Metodos
+
+/** toJSON override */
+CompanySchema.method('toJSON', function() {
+    let company = this.toObject();
+    if(this.Client) {
+        delete company.ClientId;
+    }
+    return company;
+  });
 
 // Modelo
 

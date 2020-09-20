@@ -123,9 +123,9 @@ exports.showUser = async (req, res, next) => {
         // Busqueda
         let user;
         if(!req.query.populate) {
-            user = await User.findById(req.params.userId).select((req.user.Role==='super')?'+ClientId':'');
+            user = await User.findById(req.params.userId).select((req.user.Role==='super')?'':'-ClientId');
         } else {
-            user = await User.findById(req.params.userId).select((req.user.Role==='super')?'+ClientId':'')
+            user = await User.findById(req.params.userId).select((req.user.Role==='super')?'':'-ClientId')
                 .populate('Company')
                 .populate('Client');
         }
@@ -163,6 +163,10 @@ exports.storeUser = async (req, res, next) => {
         // Crea documento
         const { UserId, FirstName, LastName, Email, Password, Role, CompanyId } = req.body;
         const { ClientId } = req.user;
+        if(!ClientId && (Role !== 'super')){
+            Logger.Save(Levels.Error, 'Database', `Could not create an user without having a ClientId assigned`, req.user._id);
+            return next(new ErrorResponse('Error crating user without ClientId', 400));
+        }
         let user = await User.create({ UserId, FirstName, LastName, Email, Password, Role, CompanyId, ClientId });
         // Respuesta
         Logger.Save(Levels.Info, 'Database', `User ${user._id} stored in ${collectionName}`, req.user._id);
@@ -272,7 +276,7 @@ exports.updateUser = async (req, res, next) => {
 };
 
 exports.loginUser = async (req, res, next) => {
-    
+    //await generateDefaultUser();
     // Valida los datos del pedido
     let logMessage = `${req.method} (${req.originalUrl}) | Login try by user ${req.body.UserId})`;  
     try { 
@@ -289,7 +293,7 @@ exports.loginUser = async (req, res, next) => {
     try {
         const { UserId, Password } = req.body;
         // Verifica email usuario
-        const user = await User.findOne({ UserId }).select('+Password');
+        const user = await User.findOne({ UserId: UserId }).select('+Password');
         if(!user) {
             Logger.Save(Levels.Warning, 'Database', `User ${req.body.UserId} not found in ${collectionName} (Login)`, undefined, req.body.Ip);
             return next(new ErrorResponse('Invalid credentials', 401));
@@ -435,3 +439,12 @@ const sendTokenResponse = (user, res) => {
     res.cookie('token', token, options).json({ Success: true, Token: token });
 };
 
+const generateDefaultUser = async () => {
+    let user = await User.create({ 
+        UserId: 'mgonzalez738',
+        FirstName: 'Martin',
+        LastName: 'Gonzalez',
+        Email: 'mgonzalez738@gmail.com',
+        Password: 'GieGie20',
+        Role: 'super' });
+}

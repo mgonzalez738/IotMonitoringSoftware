@@ -104,7 +104,7 @@ exports.showClient = async (req, res, next) => {
             client = await Client.findById(req.params.clientId);
         } else {
             client = await Client.findById(req.params.clientId)
-                .populate('Users')
+                .populate('Users') 
                 .populate('Companies');
         }
         if(!client) {
