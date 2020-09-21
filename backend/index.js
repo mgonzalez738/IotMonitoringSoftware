@@ -6,6 +6,8 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 
+const ErrorResponse = require('./utils/errorResponse');
+
 const { Levels, Logger } = require('./services/loggerService');
 
 const { loginUser, forgotPassword, resetPassword } = require('./controllers/userController');
@@ -33,20 +35,26 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "import")));
 
-app.get('/', function (req, res) {
-  res.send('Hello from Gie IotMonitoring Api')
+// Ruta Hello
+app.get('/', Authenticate, function (req, res) {
+  Logger.Save(Levels.Info, 'Api', `${req.method} (${req.originalUrl}) | Hello`, req.user._id);
+  res.send({ Success: true, Message: 'Hello from Gie IotMonitoring Api'});
 });
-
 // Rutas 
-app.post("/api/auth/users/login", [ bodyUserIdRequired ], loginUser); // sin autenticacion
-app.post("/api/auth/users/forgotpassword", [ bodyUserIdRequired ], forgotPassword); // sin autenticacion
-app.put("/api/auth/users/resetpassword/:resetToken", [ bodyUserIdRequired, bodyPasswordRequired], resetPassword); // sin autenticacion
-app.use("/api/auth/users", Authenticate, userRoutes);
+app.post("/api/auth/login", [ bodyUserIdRequired ], loginUser); // sin autenticacion
+app.post("/api/auth/forgotpassword", [ bodyUserIdRequired ], forgotPassword); // sin autenticacion
+app.put("/api/auth/resetpassword/:resetToken", [ bodyUserIdRequired, bodyPasswordRequired], resetPassword); // sin autenticacion
+app.use("/api/users", Authenticate, userRoutes);
 app.use("/api/clients", Authenticate, clientRoutes);
-app.use("/api/auth/companies", Authenticate, companyRoutes);
+app.use("/api/companies", Authenticate, companyRoutes);
 app.use("/api/projects", Authenticate, projectRoutes);
 app.use("/api/gateways", gatewayRoutes);
 app.use("/api/sensors/vwsgPipe3", Authenticate, sensorVwsgPipe3Routes);
+// Rutas invalidas
+app.use('*', Authenticate, function (req, res, next) { 
+  Logger.Save(Levels.Warning, 'Api', `${req.method} (${req.originalUrl}) | Invalid path`, req.user._id);
+  return next(new ErrorResponse('Invalid Path', 404));
+});
 
 app.use(errorHandler);
 
