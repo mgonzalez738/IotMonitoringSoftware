@@ -4,10 +4,13 @@
 #include <WiFi.h>
 #include "AzureIotHub.h"
 #include "Esp32MQTTClient.h"
+#include "DHT.h"
 
-#define INTERVAL 10000
+#define INTERVAL 60000
 #define DEVICE_ID "Esp32Device"
 #define MESSAGE_MAX_LEN 256
+#define DHTPIN 4
+#define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 
 // Please input the SSID and password of WiFi
 const char* ssid     = "GyM24";
@@ -24,6 +27,9 @@ int messageCount = 1;
 static bool hasWifi = false;
 static bool messageSending = true;
 static uint64_t send_interval_ms;
+
+// Initialize DHT sensor.
+DHT dht(DHTPIN, DHTTYPE);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utilities
@@ -106,6 +112,8 @@ void setup()
   Serial.println("ESP32 Device");
   Serial.println("Initializing...");
 
+  dht.begin();
+
   // Initialize the WiFi module
   Serial.println(" > WiFi");
   hasWifi = false;
@@ -135,14 +143,18 @@ void loop()
     if (messageSending && 
         (int)(millis() - send_interval_ms) >= INTERVAL)
     {
+      // Reading temperature or humidity takes about 250 milliseconds!
+      // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+      float humidity = dht.readHumidity();
+      // Read temperature as Celsius (the default)
+      float temperature = dht.readTemperature();
+
       // Send teperature data
       char messagePayload[MESSAGE_MAX_LEN];
-      float temperature = (float)random(0,50);
-      float humidity = (float)random(0, 1000)/10;
       snprintf(messagePayload,MESSAGE_MAX_LEN, messageData, DEVICE_ID, messageCount++, temperature,humidity);
       Serial.println(messagePayload);
       EVENT_INSTANCE* message = Esp32MQTTClient_Event_Generate(messagePayload, MESSAGE);
-      Esp32MQTTClient_Event_AddProp(message, "temperatureAlert", "true");
+      //Esp32MQTTClient_Event_AddProp(message, "temperatureAlert", "true");
       Esp32MQTTClient_SendEventInstance(message);
       
       send_interval_ms = millis();
