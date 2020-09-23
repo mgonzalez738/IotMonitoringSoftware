@@ -30,9 +30,11 @@ class Logger {
     async SetLevel(level) {
         if(Levels[level.Text] == null)
             throw(new Error(`Unknown logger level ${level}`));
-        this.level = level;
         try {
-            let configuration = await Configuration.updateOne({}, {LoggerLevel: this.level});
+            let configuration = await Configuration.findOne();
+            configuration.LoggerLevel = level;
+            configuration.save();
+            this.level = level;
         }
         catch (error) {
             console.log(error);
@@ -107,7 +109,7 @@ class Logger {
                     logDb.Level = level.Text;
                     logDb.Process = process;
                     logDb.Message = message;
-                    logDb.User = userId;
+                    logDb.UserId = userId;
                     logDb.Ip = ip;
                     logDb.Data = data;
                     await logDb.save();

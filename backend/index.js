@@ -20,6 +20,7 @@ const ftpServer = require('./consumers/ftpConsumer');
 
 const clientRoutes = require('./routes/clientRoutes');
 const userRoutes = require('./routes/userRoutes');
+const logRoutes = require('./routes/logRoutes');
 const companyRoutes = require('./routes/companyRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const gatewayRoutes = require('./routes/gatewayRoute');
@@ -46,6 +47,7 @@ app.post("/api/auth/forgotpassword", [ bodyUserIdRequired ], forgotPassword); //
 app.put("/api/auth/resetpassword/:resetToken", [ bodyUserIdRequired, bodyPasswordRequired], resetPassword); // sin autenticacion
 app.use("/api/users", Authenticate, userRoutes);
 app.use("/api/clients", Authenticate, clientRoutes);
+app.use("/api/logs", Authenticate, logRoutes);
 app.use("/api/companies", Authenticate, companyRoutes);
 app.use("/api/projects", Authenticate, projectRoutes);
 app.use("/api/gateways", gatewayRoutes);
@@ -62,7 +64,7 @@ app.use(errorHandler);
 
 app.on('dbReady', function() { 
   app.listen(listenPort, () => {
-    Logger.Save(Levels.Info, 'Api',"Start listening on port " + listenPort); 
+    Logger.Save(Levels.Trace, 'Api',"Start listening on port " + listenPort); 
     iotHubEventConsumer.suscribe();
     ftpServer.start();
   }); 
@@ -72,9 +74,9 @@ app.on('dbReady', function() {
 mongoose.connect(DbConnectionString, DbConnectionOptions)
   .then( async () => {
     // Avisa al logger que la DB esta conectada
-    //await Logger.SetDbConnected(true);
+    await Logger.SetDbConnected(true);
     Logger.Save(Levels.Info, 'Backend',`Application startded`); 
-    Logger.Save(Levels.Info, 'Database',`${DbName} connected`); 
+    Logger.Save(Levels.Trace, 'Database',`${DbName} connected`); 
     Logger.Save(Levels.Info, 'Logger',`Level set to ${Logger.GetLevel().Text}`); 
     app.emit('dbReady');
   })

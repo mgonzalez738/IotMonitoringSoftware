@@ -89,5 +89,5 @@ exports.suscribe = () => {
         processEvents: processMessages,
         processError: printError,
     });
-    Logger.Save(Levels.Info, 'EventHub',`Start listening on ${iotHubName}`);
+    Logger.Save(Levels.Trace, 'EventHub',`Start listening on ${iotHubName}`);
 }

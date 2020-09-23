@@ -13,7 +13,7 @@
 #define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 
 // Please input the SSID and password of WiFi
-const char* ssid     = "GyM24";
+const char* ssid     = "GyMFondo";
 const char* password = "matangalatanga";
 
 /*String containing Hostname, Device Id & Device Key in the format:                         */

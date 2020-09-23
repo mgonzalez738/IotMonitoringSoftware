@@ -1,10 +1,7 @@
-const ConnectionType = {
+exports.ConnectionType = {
     Campbell: "Campbell",
     Azure: "Azure"
 }
-const DeviceType = {
+exports.DeviceType = {
     SensorVwsgPipe3: "SensorVwsgPipe3"
 }
-
-exports.ConnectionType = ConnectionType;
-exports.DeviceType = DeviceType;

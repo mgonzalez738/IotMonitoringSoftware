@@ -6,6 +6,386 @@
 	},
 	"item": [
 		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Post User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"FirstName\": \"Juan\",\r\n    \"LastName\": \"Perez\",\r\n    \"Email\": \"jperez@gmail.com\",\r\n    \"Password\": \"GieGie20\",\r\n    \"Role\": \"user\",\r\n    \"UserId\": \"jperez3\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/users",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ProjectsId\": [ \"5f67b28f153a16475022223b\" ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/users/5f676c5c4ad9272700edd012",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"5f676c5c4ad9272700edd012"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/users/me?populate=true",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me"
+							],
+							"query": [
+								{
+									"key": "populate",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/users",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"users"
+							],
+							"query": [
+								{
+									"key": "firstname",
+									"value": "Martin",
+									"disabled": true
+								},
+								{
+									"key": "lastname",
+									"value": "Perezo",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "skip",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "email",
+									"value": "mgonzalez738@gmail.com",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/users/5f676c2b4ad9272700edd011?populate=true",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"5f676c2b4ad9272700edd011"
+							],
+							"query": [
+								{
+									"key": "populate",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/users/5f594c5de64e5d44143c7ea3",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"5f594c5de64e5d44143c7ea3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1ddaeb4c-2e4b-4080-9e74-5e2c2e8fe01d",
+								"exec": [
+									"pm.environment.set(\"TOKEN\", pm.response.json().Token)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"UserId\": \"jperez3\",\r\n    \"Password\": \"GieGie20\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/login",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset User Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d6182c6e-5af1-4655-9a92-e6d6d6382273",
+								"exec": [
+									"pm.environment.set(\"TOKEN\", pm.response.json().Token)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Email\": \"mgonzalez738@gmail.com\",\r\n    \"Password\": \"Care12ta\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/resetpassword/7d431bb05c2cf2da1f81258724462f90fb884d1d",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"resetpassword",
+								"7d431bb05c2cf2da1f81258724462f90fb884d1d"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot User Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "06ad5e1e-0080-40f0-b4d9-e3847bb628b6",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Email\": \"mgonzalez738@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/forgotpassword",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"forgotpassword"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "Clients",
 			"item": [
 				{
@@ -234,6 +614,354 @@
 			"protocolProfileBehavior": {}
 		},
 		{
+			"name": "Companies",
+			"item": [
+				{
+					"name": "Post Company",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Name\": \"Pluspetrol\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/companies",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"companies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Companies",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/companies",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"companies"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "Gie",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "4",
+									"disabled": true
+								},
+								{
+									"key": "skip",
+									"value": "2",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Company",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/companies/5f676f852fdf6c24741207a6?populate=true",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"companies",
+								"5f676f852fdf6c24741207a6"
+							],
+							"query": [
+								{
+									"key": "populate",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Company",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/companies/5f67b153490a4529e48f8346",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"companies",
+								"5f67b153490a4529e48f8346"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "Post Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Name\": \"Mipaya\",\r\n    \"UsersId\": [\r\n        \"5f676c2b4ad9272700edd011\",\r\n        \"5f676c5c4ad9272700edd012\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/projects",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"projects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/projects",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"projects"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "Martin",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "4",
+									"disabled": true
+								},
+								{
+									"key": "skip",
+									"value": "2",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/projects/5f67d4f0041c4b4198fff221",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"5f67d4f0041c4b4198fff221"
+							],
+							"query": [
+								{
+									"key": "populate",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/projects/5f67d4f0041c4b4198fff221",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"5f67d4f0041c4b4198fff221"
+							],
+							"query": [
+								{
+									"key": "populate",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "SensorsVwsgPipe3",
 			"item": [
 				{
@@ -420,123 +1148,10 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "Users",
+			"name": "Logs",
 			"item": [
 				{
-					"name": "Post User",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"FirstName\": \"Martin\",\r\n    \"LastName\": \"Gonzalez\",\r\n    \"Email\": \"probando@gmail.com\",\r\n    \"Password\": \"Care12ta\",\r\n    \"Role\": \"administrator\",\r\n    \"CompanyId\": \"5f594c5de64e5d44143c7ea3\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{URL}}/api/auth/users",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"users"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update User",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"CompanyId\": \"5f63a5b18ff42e5144fc05b5\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{URL}}/api/auth/users/5f62c89563b2cc5d54a12859",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"users",
-								"5f62c89563b2cc5d54a12859"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get User Me",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{URL}}/api/auth/users/me",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"users",
-								"me"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Users",
+					"name": "Get Logs",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -557,390 +1172,35 @@
 							}
 						],
 						"url": {
-							"raw": "{{URL}}/api/auth/users/me",
+							"raw": "{{URL}}/api/clients",
 							"host": [
 								"{{URL}}"
 							],
 							"path": [
 								"api",
-								"auth",
-								"users",
-								"me"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get User",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{URL}}/api/auth/users/5f594c5de64e5d44143c7ea3",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"users",
-								"5f594c5de64e5d44143c7ea3"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete User",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{URL}}/api/auth/users/5f5e899e8ff1b92c605dd7cc",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"users",
-								"5f5e899e8ff1b92c605dd7cc"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Login User",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "1ddaeb4c-2e4b-4080-9e74-5e2c2e8fe01d",
-								"exec": [
-									"pm.environment.set(\"TOKEN\", pm.response.json().Token)"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"Email\": \"mgonzalez738@gmail.com\",\r\n    \"Password\": \"Care12ta\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{URL}}/api/auth/users/login",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"users",
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Reset User Password",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "d6182c6e-5af1-4655-9a92-e6d6d6382273",
-								"exec": [
-									"pm.environment.set(\"TOKEN\", pm.response.json().Token)"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"Email\": \"mgonzalez738@gmail.com\",\r\n    \"Password\": \"Care34ta\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{URL}}/api/auth/users/resetpassword/",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"users",
-								"resetpassword",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Forgot User Password",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "06ad5e1e-0080-40f0-b4d9-e3847bb628b6",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"Email\": \"mgonzalez738@gmail.com\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{URL}}/api/auth/users/forgotpassword",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"users",
-								"forgotpassword"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "Companies",
-			"item": [
-				{
-					"name": "Post Company",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"Name\": \"Gie\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{URL}}/api/auth/companies",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"companies"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Companies",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{URL}}/api/auth/companies?limit=4&skip=2",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"companies"
+								"clients"
 							],
 							"query": [
 								{
 									"key": "name",
-									"value": "Martin",
+									"value": "Gie",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "GIE",
+									"disabled": true
+								},
+								{
+									"key": "skip",
+									"value": "1",
 									"disabled": true
 								},
 								{
 									"key": "limit",
-									"value": "4"
-								},
-								{
-									"key": "skip",
-									"value": "2"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Company",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{URL}}/api/auth/companies?limit=4&skip=2",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"companies"
-							],
-							"query": [
-								{
-									"key": "name",
-									"value": "Martin",
+									"value": "1",
 									"disabled": true
-								},
-								{
-									"key": "limit",
-									"value": "4"
-								},
-								{
-									"key": "skip",
-									"value": "2"
 								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Company",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{URL}}/api/auth/companies",
-							"host": [
-								"{{URL}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"companies"
 							]
 						}
 					},

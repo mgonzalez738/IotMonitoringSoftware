@@ -81,7 +81,7 @@ exports.start = async () => {
     // The types are incorrect here - listen returns a promise 
     await server.listen();
 
-    Logger.Save(Levels.Info, 'FtpServer',`Start listening on port ${process.env.FTP_SRV_PORT}`); 
+    Logger.Save(Levels.Trace, 'FtpServer',`Start listening on port ${process.env.FTP_SRV_PORT}`); 
 
     return { 
         shutdownFunc: async () => { 

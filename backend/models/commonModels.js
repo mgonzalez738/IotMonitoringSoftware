@@ -11,6 +11,12 @@ const TagsSchema = new Schema({
 },{ _id : false });
 exports.TagsSchema = TagsSchema;
 
+const LocationSchema = new Schema({ 
+    Latitude: { type: Number },
+    Longitude: { type: Number }
+},{ _id : false });
+exports.LocationSchema = LocationSchema;
+
 /** Esquema de Configuracion para dispositivos tipo Campbell */
 const CampbellSchema = new Schema({
     DataSource: {
