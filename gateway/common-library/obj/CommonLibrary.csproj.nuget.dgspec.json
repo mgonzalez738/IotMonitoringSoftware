@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj": {}
+    "D:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj": {}
   },
   "projects": {
-    "d:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj": {
+    "D:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj",
+        "projectUniqueName": "D:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj",
         "projectName": "CommonLibrary",
-        "projectPath": "d:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj",
+        "projectPath": "D:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj",
         "packagesPath": "C:\\Users\\Tincho\\.nuget\\packages\\",
-        "outputPath": "d:\\IotMonitoringSoftware\\gateway\\common-library\\obj\\",
+        "outputPath": "D:\\IotMonitoringSoftware\\gateway\\common-library\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\"

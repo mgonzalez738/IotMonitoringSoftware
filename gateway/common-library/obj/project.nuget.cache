@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Y/HVYOCBtH5YydKKgYKfVPG8CpYfVYwM1jWCT+exHQcCWVc4dy2t4W+52iCq0phuCn3Vm2Rr9meMISSbUxuQsw==",
+  "dgSpecHash": "AuxrdRy3B5g6lO14PbpKAiRXjC287EAWvyc9pOBSRWLUfOnL8j595uqkDCmqXzr9itcv8Wi2uyVsxJYa+tGjuw==",
   "success": true,
-  "projectFilePath": "d:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj",
+  "projectFilePath": "D:\\IotMonitoringSoftware\\gateway\\common-library\\CommonLibrary.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Tincho\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512"
   ],

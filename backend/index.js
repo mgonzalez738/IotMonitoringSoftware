@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -36,11 +37,18 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "import")));
 
+// Ruta Azure Ok
+app.get('/robots933456.txt', function (req, res) {
+  Logger.Save(Levels.Trace, 'Api', `${req.method} (${req.originalUrl}) | Azure App Service check`);
+  res.send({ Success: true, Message: 'Ok'});
+});
+/*
 // Ruta Hello
 app.get('/', Authenticate, function (req, res) {
   Logger.Save(Levels.Info, 'Api', `${req.method} (${req.originalUrl}) | Hello`, req.user._id);
   res.send({ Success: true, Message: 'Hello from Gie IotMonitoring Api'});
 });
+*/
 // Rutas 
 app.post("/api/auth/login", [ bodyUserIdRequired ], loginUser); // sin autenticacion
 app.post("/api/auth/forgotpassword", [ bodyUserIdRequired ], forgotPassword); // sin autenticacion
@@ -53,15 +61,38 @@ app.use("/api/projects", Authenticate, projectRoutes);
 app.use("/api/gateways", gatewayRoutes);
 app.use("/api/sensors/vwsgPipe3", Authenticate, sensorVwsgPipe3Routes);
 // Rutas invalidas
+
+/*
 app.use('*', Authenticate, function (req, res, next) { 
   Logger.Save(Levels.Warning, 'Api', `${req.method} (${req.originalUrl}) | Invalid path`, req.user._id);
   return next(new ErrorResponse('Invalid Path', 404));
 });
+*/
+// Sirve la aplicacion angular (Funciona el router)
+// https://stackoverflow.com/questions/49640365/mean-nodejs-server-for-angular-app-how-do-i-serve-angular-routes
 
+var staticRoot = path.join(__dirname, "/www/");
+
+app.use(function(req, res, next) {
+  //if the request is not html then move along
+  var accept = req.accepts('html');
+  if (accept !== 'html') {
+      return next();
+  }
+  // if the request has a '.' assume that it's for a file, move along
+  var ext = path.extname(req.path);
+  if (ext !== '') {
+      return next();
+  }
+  fs.createReadStream(staticRoot + 'index.html').pipe(res);
+});
+
+app.use(express.static(staticRoot));
+
+// Maneja errores
 app.use(errorHandler);
 
 // Espera la conexion a la base de datos para arrancar la app
-
 app.on('dbReady', function() { 
   app.listen(listenPort, () => {
     Logger.Save(Levels.Trace, 'Api',"Start listening on port " + listenPort); 

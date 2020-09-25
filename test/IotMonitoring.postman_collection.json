@@ -1172,23 +1172,18 @@
 							}
 						],
 						"url": {
-							"raw": "{{URL}}/api/clients",
+							"raw": "{{URL}}/api/logs?process=Api",
 							"host": [
 								"{{URL}}"
 							],
 							"path": [
 								"api",
-								"clients"
+								"logs"
 							],
 							"query": [
 								{
-									"key": "name",
-									"value": "Gie",
-									"disabled": true
-								},
-								{
-									"key": "tag",
-									"value": "GIE",
+									"key": "sort",
+									"value": "-1",
 									"disabled": true
 								},
 								{
@@ -1200,6 +1195,66 @@
 									"key": "limit",
 									"value": "1",
 									"disabled": true
+								},
+								{
+									"key": "from",
+									"value": "2020-09-22T23:41:24.020Z",
+									"disabled": true
+								},
+								{
+									"key": "to",
+									"value": "2020-09-22T23:41:43.811Z",
+									"disabled": true
+								},
+								{
+									"key": "level",
+									"value": "Info",
+									"disabled": true
+								},
+								{
+									"key": "process",
+									"value": "Api"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Log",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/logs/5f6a936cf8a9b00afc3a143d?populate=true",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"logs",
+								"5f6a936cf8a9b00afc3a143d"
+							],
+							"query": [
+								{
+									"key": "populate",
+									"value": "true"
 								}
 							]
 						}
