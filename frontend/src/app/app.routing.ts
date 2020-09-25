@@ -47,9 +47,13 @@ export const routes: Routes = [
     path: '',
     component: DefaultLayoutComponent,
     data: {
-      title: 'Home'
+      title: 'Raiz'
     },
     children: [
+      {
+        path: 'construccion',
+        loadChildren: () => import('./views/construction/construction.module').then(m => m.ConstructionModule)
+      },
       {
         path: 'base',
         loadChildren: () => import('./views/base/base.module').then(m => m.BaseModule)
