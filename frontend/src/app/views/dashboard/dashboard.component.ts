@@ -13,17 +13,7 @@ export class DashboardComponent implements OnInit {
 
  constructor(private authService: AuthService) {}
 
- public async getUsers(event) {
-  try {
-    await this.authService.login("mgonzalez738", "GieGie20");
-  }
-  catch (error) {
-    console.log(error);
-  }
-  return;
-}
-
-  radioModel: string = 'Month';
+   radioModel: string = 'Month';
 
   // lineChart1
   public lineChart1Data: Array<any> = [

@@ -14,6 +14,7 @@ export class DefaultLayoutComponent implements OnInit, OnDestroy {
   public navItems = navItems;
   private authListenerSubs: Subscription;
   private userIsAuthenticated = false;
+  public username = "";
 
   constructor(private authService: AuthService) {}
 
@@ -23,6 +24,8 @@ export class DefaultLayoutComponent implements OnInit, OnDestroy {
     .subscribe(isAuthenticated => {
       this.userIsAuthenticated = isAuthenticated;
     });
+    this.username = this.authService.getUsername();
+
   };
 
   ngOnDestroy(): void {

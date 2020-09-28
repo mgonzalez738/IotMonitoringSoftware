@@ -462,8 +462,8 @@ const sendTokenResponse = (user, res) => {
     if(process.env.NODE_ENV === 'production') {
         options.secure = true;
     }
-    // Modifica res con token en cookie y en body
-    res.cookie('token', token, options).json({ Success: true, Token: token });
+    // Modifica res con token en cookie y en bodyuser.
+    res.cookie('token', token, options).json({ Success: true, Username: user.UserId, _id: user._id, Token: token });
 };
 
 const generateDefaultUser = async () => {
