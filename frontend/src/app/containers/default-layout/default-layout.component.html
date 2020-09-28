@@ -12,11 +12,12 @@
   <ul class="nav navbar-nav ml-auto">
     <li class="nav-item dropdown" dropdown placement="bottom right">
       <a class="nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" dropdownToggle (click)="false">
+        <span class="navbar-text">Usuario</span>
         <img src="assets/img/brand/user.png" class="img-avatar" alt="Usuario"/>
       </a>
       <div class="dropdown-menu dropdown-menu-right" *dropdownMenu aria-labelledby="simple-dropdown">
         <a class="dropdown-item" href="#"><i class="fa fa-user"></i> Cuenta</a>
-        <a class="dropdown-item" href="#"><i class="fa fa-lock"></i> Salir</a>
+        <a class="dropdown-item" href="#" (click)="onLogout()"><i class="fa fa-lock"></i> Salir</a>
       </div>
     </li>
   </ul>
@@ -42,7 +43,7 @@
   </main>
 
    <!-- Right Sidebar -->
-  <app-aside [fixed]="true" [display]="false" [ngClass]="'test'"></app-aside>
+  <!--<app-aside [fixed]="true" [display]="false" [ngClass]="'test'"></app-aside>-->
 
 </div>
 

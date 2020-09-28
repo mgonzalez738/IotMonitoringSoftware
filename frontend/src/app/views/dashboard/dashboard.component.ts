@@ -2,10 +2,26 @@ import { Component, OnInit } from '@angular/core';
 import { getStyle, hexToRgba } from '@coreui/coreui/dist/js/coreui-utilities';
 import { CustomTooltips } from '@coreui/coreui-plugin-chartjs-custom-tooltips';
 
+import { AuthService } from '../../services/auth/auth.service';
+
+
 @Component({
   templateUrl: 'dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
+
+
+ constructor(private authService: AuthService) {}
+
+ public async getUsers(event) {
+  try {
+    await this.authService.login("mgonzalez738", "GieGie20");
+  }
+  catch (error) {
+    console.log(error);
+  }
+  return;
+}
 
   radioModel: string = 'Month';
 
