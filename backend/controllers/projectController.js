@@ -160,14 +160,14 @@ exports.storeProject = async (req, res, next) => {
     
     // Procesa el pedido
     try {
-        const { Name, UsersId } = req.body;
+        const { Name } = req.body;
         const { ClientId } = req.user;
         if(!ClientId) {
             Logger.Save(Levels.Error, 'Database', `Error storing project -> ClientId undefined`, req.user._id);
             return next(new ErrorResponse('ClientId undefined', 400));
         }
-        let project = await Project.create({ Name, UsersId, ClientId });
-        Logger.Save(Levels.Info, 'Database', `Project ${project.id} stored in ${collectionName}`, req.user._id);
+        let project = await Project.create({ Name, ClientId });
+        Logger.Save(Levels.Info, 'Database', `Project ${project._id} stored in ${collectionName}`, req.user._id);
         res.send({Success: true, Data: { _id: project._id } });
 
     // Errores inesperados
