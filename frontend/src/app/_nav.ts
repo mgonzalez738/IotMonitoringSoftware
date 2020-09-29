@@ -2,49 +2,6 @@ import { INavData } from '@coreui/angular';
 
 export const navItems: INavData[] = [
   {
-    name: 'Panel',
-    url: '/dashboard',
-    icon: 'icon-speedometer',
-  },
-  {
-    title: true,
-    name: 'Cliente'
-  },
-  {
-    name: 'Cliente1',
-    url: '/construccion',
-    icon:'icon-mustache',
-    children: [
-      {
-        name: 'Cliente1',
-        url: '/construccion',
-      },
-      {
-        name: 'Cliente2',
-        url: '/construccion',
-      },
-    ]
-  },
-  {
-    title: true,
-    name: 'Proyecto'
-  },
-  {
-    name: 'Proyecto1',
-    url: '/construccion',
-    icon: 'icon-screen-tablet',
-    children: [
-      {
-        name: 'Proyecto1',
-        url: '/construccion',
-      },
-      {
-        name: 'Proyecto2',
-        url: '/construccion',
-      },
-    ]
-  },
-  {
     title: true,
     name: 'Componentes',
   },

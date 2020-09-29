@@ -12,7 +12,6 @@
   <ul class="nav navbar-nav ml-auto">
     <li class="nav-item dropdown" dropdown placement="bottom right">
       <a class="nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" dropdownToggle (click)="false">
-        <span class="navbar-text">{{username}}</span>
         <img src="assets/img/brand/user.png" class="img-avatar" alt="Usuario"/>
       </a>
       <div class="dropdown-menu dropdown-menu-right" *dropdownMenu aria-labelledby="simple-dropdown">
@@ -27,9 +26,34 @@
 <div class="app-body">
 
   <!-- Left Sidebar -->
+
   <app-sidebar #appSidebar [fixed]="true" [display]="'lg'" [minimized]="sidebarMinimized" (minimizedChange)="toggleMinimize($event)">
-    <app-sidebar-nav [navItems]="navItems" [perfectScrollbar] [disabled]="appSidebar.minimized"></app-sidebar-nav>
-    <app-sidebar-minimizer></app-sidebar-minimizer>
+
+    <!-- Boton Panel -->
+    <button style="height: 45px" type="button" class="btn btn-primary btn-block btn-square text-left">
+      <i class="icon-speedometer ml-2 mr-3"></i>Panel
+    </button>
+
+    <!-- Boton Clientes -->
+    <div class="btn-group" dropdown *ngIf="(user && user.Role ==='super')">
+      <button style="height: 45px" dropdownToggle type="button" class="btn btn-secondary dropdown-toggle btn-block btn-square text-left">
+        <i class="icon-briefcase ml-2 mr-3"></i>{{ clientName }}<span class="caret "></span>
+      </button>
+      <ul *dropdownMenu class="dropdown-menu" role="menu">
+        <li role="menuitem" *ngFor="let client of clients" (click)="clientSelectedChanged($event, client)"><a class="dropdown-item" href="#">{{client.Name}}</a></li>
+      </ul>
+    </div>
+
+    <!-- Boton Proyectos -->
+    <div class="btn-group" dropdown *ngIf="clientSelected">
+      <button style="height: 45px" dropdownToggle type="button" class="btn btn-secondary dropdown-toggle btn-block btn-square text-left">
+        <i class="icon-screen-smartphone ml-2 mr-3"></i>{{ projectName }}<span class="caret "></span>
+      </button>
+      <ul *dropdownMenu class="dropdown-menu" role="menu">
+        <li role="menuitem" *ngFor="let project of projects" (click)="projectSelectedChanged($event, project)"><a class="dropdown-item" href="#">{{project.Name}}</a></li>
+      </ul>
+    </div>
+    <app-sidebar-nav [navItems]="navItems" [perfectScrollbar] [disabled]="appSidebar.minimized" *ngIf="clientSelected && projectSelected"></app-sidebar-nav>
   </app-sidebar>
 
   <!-- Main content -->
@@ -37,7 +61,7 @@
     <!-- Breadcrumb -->
     <cui-breadcrumb></cui-breadcrumb>
     <!-- Views-->
-    <div class="container-fluid">
+    <div class="container-fluid" *ngIf="clientSelected  && projectSelected">
       <router-outlet></router-outlet>
     </div><!-- /.container-fluid -->
   </main>

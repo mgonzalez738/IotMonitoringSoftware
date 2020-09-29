@@ -21,10 +21,6 @@ export class AuthService {
     return this.token;
   }
 
-  getUsername() {
-    return this.username;
-  }
-
   getIsAuthenticated() {
     return this.isAuthenticated;
   }
@@ -34,13 +30,10 @@ export class AuthService {
   }
 
   async login(username: string, password: string):Promise<boolean>{
-
     let data = { UserId: username, Password: password };
-    return this.http.post<{Success: boolean; Username: string, _id: string, Token: string}>(this.urlApi + "/auth/login", data).toPromise().then((res)=>{
+    return this.http.post<{Success: boolean; Token: string}>(this.urlApi + "/auth/login", data).toPromise().then((res)=>{
       this.token = res.Token;
       if(this.token) {
-        this.username = res.Username;
-        this.userid = res._id;
         this.isAuthenticated = true;
         this.authStatusListener.next(true);
         this.saveAuthData(this.token, this.username);
@@ -54,7 +47,6 @@ export class AuthService {
     const authInformation = this.getAuthData();
     if(authInformation) {
       this.token = authInformation.token;
-      this.username = authInformation.username;
       this.isAuthenticated = true;
       this.authStatusListener.next(true);
     }
@@ -70,18 +62,15 @@ export class AuthService {
 
   private saveAuthData(token: string, username: string) {
     localStorage.setItem('token', token);
-    localStorage.setItem('username', username)
   }
 
   private getAuthData() {
     const token = localStorage.getItem('token');
-    const username = localStorage.getItem('username');
     if(!token) {
       return;
     }
     return {
-      token: token,
-      username: username
+      token: token
     }
   }
 

@@ -463,7 +463,7 @@ const sendTokenResponse = (user, res) => {
         options.secure = true;
     }
     // Modifica res con token en cookie y en bodyuser.
-    res.cookie('token', token, options).json({ Success: true, Username: user.UserId, _id: user._id, Token: token });
+    res.cookie('token', token, options).json({ Success: true, Token: token });
 };
 
 const generateDefaultUser = async () => {
