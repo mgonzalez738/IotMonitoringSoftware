@@ -17,13 +17,15 @@ import { AppComponent } from './app.component';
 
 // Import containers
 import { DefaultLayoutComponent } from './containers';
+import { ClientSelectionComponent } from './containers/default-layout/client-selection.component'
+import { ProjectSelectionComponent } from './containers/default-layout/project-selection.component'
 import { P404Component } from './views/error/404.component';
 import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './containers/login/login.component';
 import { RegisterComponent } from './views/register/register.component';
 
 const APP_CONTAINERS = [
-  DefaultLayoutComponent
+  DefaultLayoutComponent, ClientSelectionComponent, ProjectSelectionComponent
 ];
 
 import {

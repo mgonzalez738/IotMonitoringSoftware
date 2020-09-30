@@ -131,8 +131,9 @@ exports.showUser = async (req, res, next) => {
         } else {
             user = await User.findById(req.params.userId).select((req.user.Role==='super')?'':'-ClientId')
                 .populate('Company')
+                .populate('Client')
                 .populate('Projects')
-                .populate('Client');
+                .populate('Project');
         }
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} not found in ${collectionName}`, req.user._id);
@@ -171,7 +172,7 @@ exports.storeUser = async (req, res, next) => {
     // Preocesa el pedido
     try {
         // Crea documento
-        const { UserId, FirstName, LastName, Email, Password, Role, ProjectsId, CompanyId } = req.body;
+        const { UserId, FirstName, LastName, Email, Password, Role, ProjectsId, CompanyId, ProjectId } = req.body;
         const { ClientId } = req.user;
         if(!ClientId && (Role !== 'super')){
             Logger.Save(Levels.Error, 'Database', `Could not create an user without having a ClientId assigned`, req.user._id);
@@ -182,7 +183,7 @@ exports.storeUser = async (req, res, next) => {
             Logger.Save(Levels.Error, 'Database', `User ${req.params.userId} can not create super user`, req.user._id);
             return next(new ErrorResponse('Authorization failed', 403));
         }
-        let user = await User.create({ UserId, FirstName, LastName, Email, Password, Role, ProjectsId, CompanyId, ClientId });
+        let user = await User.create({ UserId, FirstName, LastName, Email, Password, Role, ProjectsId, CompanyId, ClientId, ProjectId });
         // Respuesta
         Logger.Save(Levels.Info, 'Database', `User ${user._id} stored in ${collectionName}`, req.user._id);
         res.send({Success: true, Data: { _id: user._id }});
@@ -267,7 +268,7 @@ exports.updateUser = async (req, res, next) => {
             return next(new ErrorResponse('Can not add ProjectsId to super user', 400));
         }
         // Actualizacion
-        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId, ProjectsId, ClientId } = req.body; 
+        const { UserId, FirstName, LastName, Email, Password, Role, CompanyId, ProjectsId, ClientId, ProjectId } = req.body; 
         if(UserId)
             user.UserId = UserId;
         if(FirstName) 
@@ -290,6 +291,11 @@ exports.updateUser = async (req, res, next) => {
             } else {
                 user.ClientId = ClientId;
             }
+        }
+        if(ProjectId === null) {
+            user.ProjectId = undefined;
+        } else {
+            user.ProjectId = ProjectId;
         }
         await user.save();
         // Respuesta
@@ -355,7 +361,9 @@ exports.getMe = async (req, res, next) => {
         } else {
             user = await User.findOne({ _id: req.user._id }).select((req.user.Role==='super')?'+ClientId':'')
                 .populate('Company')
-                .populate('Client');
+                .populate('Client')
+                .populate('Projects')
+                .populate('Project');
         }
         if(!user) {
             Logger.Save(Levels.Info, 'Database', `User ${req.user._id} not found in ${collectionName}`, req.user._id);

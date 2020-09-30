@@ -21,6 +21,7 @@ const UserSchema = new mongoose.Schema({
     CompanyId: { type: mongoose.Schema.Types.ObjectId },
     ProjectsId: [{ type: mongoose.Schema.Types.ObjectId }],
     ClientId: { type: mongoose.Schema.Types.ObjectId },
+    ProjectId: { type: mongoose.Schema.Types.ObjectId },
     ResetPasswordToken: { type: String, select: false },
     ResetPasswordExpire: { type: Date, select: false },
     CreatedAt: { type: Date, default: Date.now }   
@@ -51,6 +52,13 @@ UserSchema.virtual('Company', {
     justOne: false
  });
 
+ UserSchema.virtual('Project', {
+    localField: 'ProjectId',
+    foreignField: '_id',
+    ref: 'Project',
+    justOne: true
+ });
+
 // Middleware
 
 /** Encripta el password y valida referencias */
@@ -74,13 +82,20 @@ UserSchema.pre('save', async function(next) {
             return next(new ErrorResponse('CompanyId not found', 400));
         }
     } 
-    // Verifica que equistan los id de proyecto
+    // Verifica que equistan los id de proyectos
     if(this.ProjectsId && this.isModified('ProjectsId')) {
         for(i=0; i<this.ProjectsId.length; i++) {
             const project = await Project.findById(this.ProjectsId[i]);
             if(!project) {
                 return next(new ErrorResponse('ProjectId not found', 400));
             }
+        }
+    }
+    // Verifica que exista el id de proyecto
+    if(this.ProjectId && this.isModified('ProjectId')) {
+        const project = await Project.findById(this.ProjectId);
+        if(!project) {
+            return next(new ErrorResponse('ProjectId not found', 400));
         }
     } 
     next();  
@@ -99,6 +114,9 @@ UserSchema.method('toJSON', function() {
     }
     if(this.Projects) {
         delete user.ProjectsId;
+    }
+    if(this.Project) {
+        delete user.ProjectId;
     }
     return user;
   });

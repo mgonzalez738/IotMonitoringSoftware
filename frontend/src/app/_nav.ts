@@ -11,28 +11,20 @@ export const navItems: INavData[] = [
     icon: 'icon-puzzle',
     children: [
       {
-        name: 'Vista1',
-        url: '/construccion',
-      },
-      {
-        name: 'Vista2',
-        url: '/construccion',
-      },
+        name: 'Vista Ejemplo',
+        url: '/site',
+      }
     ]
   },
   {
     name: 'Gráficas',
-    url: '/plot',
+    url: '/charts',
     icon: 'icon-puzzle',
     children: [
       {
-        name: 'Gráfica1',
-        url: '/construccion',
-      },
-      {
-        name: 'Gráfica2',
-        url: '/construccion',
-      },
+        name: 'Gráficas Ejemplo',
+        url: '/charts',
+      }
     ]
   },
   {

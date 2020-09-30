@@ -1,0 +1,10 @@
+<div class="btn-group w-100" dropdown >
+  <button style="height: 45px" dropdownToggle type="button" class="btn btn-secondary dropdown-toggle btn-block btn-square text-left">
+    <i class="icon-briefcase ml-2 mr-3"></i> {{ clientSelected?.Name || "Cliente "}} <span class="caret"></span>
+  </button>
+  <ul *dropdownMenu class="dropdown-menu" role="menu">
+    <li role="menuitem" *ngFor="let client of clientList" (click)="onClientSelectedChanged($event, client)">
+      <a class="dropdown-item" href="#">{{client.Name}}</a>
+    </li>
+  </ul>
+</div>

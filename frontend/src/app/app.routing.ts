@@ -11,6 +11,8 @@ import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './containers/login/login.component';
 import { RegisterComponent } from './views/register/register.component';
 
+
+
 export const routes: Routes = [
   {
     path: '',
@@ -54,8 +56,8 @@ export const routes: Routes = [
     },
     children: [
       {
-        path: 'enconstruccion',
-        loadChildren: () => import('./views/construction/construction.module').then(m => m.ConstructionModule)
+        path: 'site',
+        loadChildren: () => import('./views/sites/sites.module').then(m => m.SiteModule)
       },
       {
         path: 'base',
@@ -72,9 +74,6 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadChildren: () => import('./views/dashboard/dashboard.module').then(m => m.DashboardModule),
-        data: {
-          title: 'Panel'
-        },
       },
       {
         path: 'icons',

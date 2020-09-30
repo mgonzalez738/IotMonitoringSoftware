@@ -30,30 +30,25 @@
   <app-sidebar #appSidebar [fixed]="true" [display]="'lg'" [minimized]="sidebarMinimized" (minimizedChange)="toggleMinimize($event)">
 
     <!-- Boton Panel -->
-    <button style="height: 45px" type="button" class="btn btn-primary btn-block btn-square text-left">
-      <i class="icon-speedometer ml-2 mr-3"></i>Panel
+    <button style="height: 45px" type="button" class="btn btn-success btn-block btn-square text-left">
+      <i class="icon-speedometer ml-2 mr-3"></i><b>Panel General</b>
     </button>
 
     <!-- Boton Clientes -->
-    <div class="btn-group" dropdown *ngIf="(user && user.Role ==='super')">
-      <button style="height: 45px" dropdownToggle type="button" class="btn btn-secondary dropdown-toggle btn-block btn-square text-left">
-        <i class="icon-briefcase ml-2 mr-3"></i>{{ clientName }}<span class="caret "></span>
-      </button>
-      <ul *dropdownMenu class="dropdown-menu" role="menu">
-        <li role="menuitem" *ngFor="let client of clients" (click)="clientSelectedChanged($event, client)"><a class="dropdown-item" href="#">{{client.Name}}</a></li>
-      </ul>
-    </div>
+    <client-selection *ngIf="(authUser?.Role ==='super')"
+    [clientList] = clients
+    [clientSelected] = authUser?.Client
+    (clientSelectedChanged)="onClientSelectedChanged($event)">
+    </client-selection>
 
     <!-- Boton Proyectos -->
-    <div class="btn-group" dropdown *ngIf="clientSelected">
-      <button style="height: 45px" dropdownToggle type="button" class="btn btn-secondary dropdown-toggle btn-block btn-square text-left">
-        <i class="icon-screen-smartphone ml-2 mr-3"></i>{{ projectName }}<span class="caret "></span>
-      </button>
-      <ul *dropdownMenu class="dropdown-menu" role="menu">
-        <li role="menuitem" *ngFor="let project of projects" (click)="projectSelectedChanged($event, project)"><a class="dropdown-item" href="#">{{project.Name}}</a></li>
-      </ul>
-    </div>
-    <app-sidebar-nav [navItems]="navItems" [perfectScrollbar] [disabled]="appSidebar.minimized" *ngIf="clientSelected && projectSelected"></app-sidebar-nav>
+    <project-selection *ngIf="authUser?.Client"
+    [projectList] = projects
+    [projectSelected] = authUser.Project
+    (projectSelectedChanged)="onProjectSelectedChanged($event)">
+    </project-selection>
+
+  <app-sidebar-nav [navItems]="navItems" [perfectScrollbar] [disabled]="appSidebar.minimized" *ngIf="authUser?.Client && authUser?.Project"></app-sidebar-nav>
   </app-sidebar>
 
   <!-- Main content -->
@@ -61,7 +56,7 @@
     <!-- Breadcrumb -->
     <cui-breadcrumb></cui-breadcrumb>
     <!-- Views-->
-    <div class="container-fluid" *ngIf="clientSelected  && projectSelected">
+    <div class="container-fluid" *ngIf="authUser?.Client && authUser?.Project">
       <router-outlet></router-outlet>
     </div><!-- /.container-fluid -->
   </main>

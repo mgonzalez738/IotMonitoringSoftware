@@ -17,8 +17,7 @@ export class LoginComponent implements OnInit {
 
   constructor(private authService: AuthService) { }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void { }
 
   async OnLogin(form: NgForm) {
     this.isLoading = true;
