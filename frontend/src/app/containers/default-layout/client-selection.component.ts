@@ -4,7 +4,7 @@ import { Client } from '../../models/clientModel';
 
 @Component({
   selector: 'client-selection',
-  inputs: ['clientSelected', 'clientList'],
+  inputs: ['clientSelected', 'clientList', 'isLoading'],
   outputs: ['clientSelectedChanged'],
   templateUrl: './client-selection.component.html'
 })
@@ -13,6 +13,7 @@ export class ClientSelectionComponent {
   public clientList: Client[];
   public clientSelected: Client;
   public clientSelectedChanged = new EventEmitter<Client>();
+  public isLoading = false;
 
   constructor( ) {}
 

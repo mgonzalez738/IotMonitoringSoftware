@@ -28,6 +28,9 @@ export class DefaultLayoutComponent implements OnInit, OnDestroy {
   public clients: Client[];
   public projects: Project[];
 
+  public clientIsLoading = false;
+  public projectIsLoading = false;
+
   constructor(
     private authService: AuthService,
     private usersService: UsersService,
@@ -61,7 +64,7 @@ export class DefaultLayoutComponent implements OnInit, OnDestroy {
     // Carga los proyectos si el cliente ya esta seleccionado
     if(this.authUser && this.authUser.Client) {
       await this.loadProjects();
-    }
+     }
   };
 
   ngOnDestroy(): void {
@@ -77,23 +80,29 @@ export class DefaultLayoutComponent implements OnInit, OnDestroy {
   }
 
   public async onClientSelectedChanged(client: Client) {
+    this.clientIsLoading = true;
     try {
       // Actualiza el cliente y el usuario autorizado
       await this.usersService.updateUserSelectedClient(this.authUser._id, client._id);
       await this.usersService.updateUserSelectedProject(this.authUser._id, null);
       this.authUser = await this.usersService.getAuthUser();
+      this.clientIsLoading = false;
       await this.loadProjects();
     } catch (error) {
+      this.clientIsLoading = false;
       console.log(error);
     }
   }
 
   public async onProjectSelectedChanged(project: Project) {
+    this.projectIsLoading = true;
     try {
       // Actualiza el proyecto y el usuario autorizado
       await this.usersService.updateUserSelectedProject(this.authUser._id, project._id);
       this.authUser = await this.usersService.getAuthUser();
+      this.projectIsLoading = false;
     } catch (error) {
+      this.projectIsLoading = false;
       console.log(error);
     }
   }

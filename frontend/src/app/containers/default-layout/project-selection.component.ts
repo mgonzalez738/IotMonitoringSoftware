@@ -4,7 +4,7 @@ import { Project } from '../../models/projectModel';
 
 @Component({
   selector: 'project-selection',
-  inputs: ['projectSelected', 'projectList'],
+  inputs: ['projectSelected', 'projectList', 'isLoading'],
   outputs: ['projectSelectedChanged'],
   templateUrl: './project-selection.component.html'
 })
@@ -13,6 +13,7 @@ export class ProjectSelectionComponent {
   public projectList: Project[];
   public projectSelected: Project;
   public projectSelectedChanged = new EventEmitter<Project>();
+  public isLoading = false;
 
   constructor( ) {}
 

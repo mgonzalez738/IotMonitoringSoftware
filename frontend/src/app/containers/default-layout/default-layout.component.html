@@ -36,6 +36,7 @@
 
     <!-- Boton Clientes -->
     <client-selection *ngIf="(authUser?.Role ==='super')"
+    [isLoading] = clientIsLoading
     [clientList] = clients
     [clientSelected] = authUser?.Client
     (clientSelectedChanged)="onClientSelectedChanged($event)">
@@ -43,6 +44,7 @@
 
     <!-- Boton Proyectos -->
     <project-selection *ngIf="authUser?.Client"
+    [isLoading] = projectIsLoading
     [projectList] = projects
     [projectSelected] = authUser.Project
     (projectSelectedChanged)="onProjectSelectedChanged($event)">
