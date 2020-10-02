@@ -13,11 +13,13 @@ export class UsersComponent implements OnInit {
 
   public users: User[];
   public selectedUser: User = null;
+  @ViewChild('mogModal') public mogModal: ModalDirective;
   @ViewChild('warningModal') public warningModal: ModalDirective;
   public isDeleting: boolean = false;
 
   constructor(
-    private usersService: UsersService
+    private usersService: UsersService,
+    private router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -28,9 +30,21 @@ export class UsersComponent implements OnInit {
     }
   }
 
+  onEdit(event, user: User) {
+    this.router.navigate(['/users', user.UserId]);
+  }
+
   onDeleteRequest(event, user: User) {
-    this.selectedUser = user;
-    this.warningModal.show();
+    if(user.UserId === 'mgonzalez738') {
+      this.mogModal.show();
+    } else {
+      this.selectedUser = user;
+      this.warningModal.show();
+    }
+  }
+
+  onMogCancel(event) {
+    this.mogModal.hide();
   }
 
   onDeleteCancel(event) {

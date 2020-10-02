@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router'
+import { Router, ActivatedRoute, ParamMap } from '@angular/router'
 import { NgForm, PatternValidator } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 
@@ -10,10 +10,11 @@ import { User, UserPopulated } from '../../models/userModel';
 import { Project } from '../../models/projectModel';
 
 @Component({
-  templateUrl: 'new-user.component.html'
+  templateUrl: 'edit-user.component.html'
 })
-export class NewUserComponent implements OnInit {
+export class EditUserComponent implements OnInit {
 
+  private paramUserId;
   authUser: UserPopulated;
   roleSelected: string = "guest";
   projects: Project[];
@@ -39,10 +40,18 @@ export class NewUserComponent implements OnInit {
   constructor(
     private usersService: UsersService,
     private projectsService: ProjectsService,
-    private router: Router
-  ) { }
+    private router: Router,
+    private route: ActivatedRoute,
+  ) {
+    this.route.paramMap.subscribe(map => {
+      this.paramUserId = map.get('userid');
+    });
+  }
 
   async ngOnInit(): Promise<void> {
+
+
+
     try {
       this.authUser = await this.usersService.getAuthUser();
       this.projects = await this.projectsService.getProjects();
@@ -52,6 +61,9 @@ export class NewUserComponent implements OnInit {
   }
 
   async OnOk(form: NgForm) {
+
+    console.log(this.paramUserId);
+
     let error = false;
     this.isLoading = true;
     const passwordPattern = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}");

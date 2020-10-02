@@ -8,6 +8,7 @@ import { UsersRoutingModule } from './users-routing.module';
 import { UserLayoutComponent } from './user-layout.component';
 import { UsersComponent } from './users.component';
 import { NewUserComponent } from './new-user.component';
+import { EditUserComponent } from './edit-user.component';
 
 @NgModule({
   imports: [
@@ -19,7 +20,8 @@ import { NewUserComponent } from './new-user.component';
   declarations: [
     UserLayoutComponent,
     UsersComponent,
-    NewUserComponent
+    NewUserComponent,
+    EditUserComponent
   ]
 })
 
