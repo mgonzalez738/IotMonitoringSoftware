@@ -5,6 +5,7 @@ import { Client } from './clientModel';
 export class User {
   public _id: string;
   public UserId: string;
+  public Password: string;
   public FirstName: string;
   public LastName: string;
   public Email: string;

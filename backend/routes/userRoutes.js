@@ -45,7 +45,7 @@ router.post('/',
 
 router.put('/:userId',
     [ 
-        Authorize('super', 'administrator'),
+        Authorize('super', 'administrator', 'user', 'guest'),
         paramUserIdIsMongoId, bodyEmailOptional,
         bodyPasswordOptional, bodyCompanyIdOptional, bodyClientIdOptionalNull
     ],

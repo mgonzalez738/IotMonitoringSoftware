@@ -29,10 +29,10 @@
 
   <app-sidebar #appSidebar [fixed]="true" [display]="'lg'" [minimized]="sidebarMinimized" (minimizedChange)="toggleMinimize($event)">
 
-    <!-- Boton Panel -->
-    <button style="height: 45px" type="button" class="btn btn-success btn-block btn-square text-left">
-      <i class="icon-speedometer ml-2 mr-3"></i><b>Panel General</b>
-    </button>
+    <!-- Boton Panel General -->
+    <dashboard-button
+    [enabled] = "authUser?.Client && authUser?.Project">
+    </dashboard-button>
 
     <!-- Boton Clientes -->
     <client-selection *ngIf="(authUser?.Role ==='super')"
@@ -46,7 +46,7 @@
     <project-selection *ngIf="authUser?.Client"
     [isLoading] = projectIsLoading
     [projectList] = projects
-    [projectSelected] = authUser.Project
+    [projectSelected] = authUser?.Project
     (projectSelectedChanged)="onProjectSelectedChanged($event)">
     </project-selection>
 
@@ -55,12 +55,27 @@
 
   <!-- Main content -->
   <main class="main">
+
     <!-- Breadcrumb -->
-    <cui-breadcrumb></cui-breadcrumb>
+    <cui-breadcrumb>
+      <!-- Breadcrumb Menu-->
+      <li class="breadcrumb-menu d-md-down-none">
+        <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+          <!--<a class="btn" href="#"><i class="icon-speech"></i></a>-->
+          <a class="btn text-primary" [routerLink]="['/users']" *ngIf="authUser?.Role==='super' || authUser?.Role==='administrator'">
+            <i class="fa fa-user-o mr-1"></i>
+            Usuarios
+          </a>
+          <!--<a class="btn" href="#"><i class="icon-settings"></i> &nbsp;Settings</a>-->
+        </div>
+      </li>
+    </cui-breadcrumb>
+
     <!-- Views-->
     <div class="container-fluid" *ngIf="authUser?.Client && authUser?.Project">
       <router-outlet></router-outlet>
     </div><!-- /.container-fluid -->
+
   </main>
 
    <!-- Right Sidebar -->

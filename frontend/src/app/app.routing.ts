@@ -11,8 +11,6 @@ import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './containers/login/login.component';
 import { RegisterComponent } from './views/register/register.component';
 
-
-
 export const routes: Routes = [
   {
     path: '',
@@ -58,6 +56,10 @@ export const routes: Routes = [
       {
         path: 'site',
         loadChildren: () => import('./views/sites/sites.module').then(m => m.SiteModule)
+      },
+      {
+        path: 'users',
+        loadChildren: () => import('./views/users/users.module').then(m => m.UsersModule)
       },
       {
         path: 'base',

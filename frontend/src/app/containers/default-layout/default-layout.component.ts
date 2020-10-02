@@ -1,6 +1,7 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import { navItems } from '../../_nav';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router'
 
+import { navItems } from '../../_nav';
 import { AuthService } from '../../services/auth/auth.service';
 import { UsersService } from '../../services/users/users.service';
 import { ClientsService } from '../../services/clients/clients.service';
@@ -32,6 +33,7 @@ export class DefaultLayoutComponent implements OnInit, OnDestroy {
   public projectIsLoading = false;
 
   constructor(
+    private router: Router,
     private authService: AuthService,
     private usersService: UsersService,
     private clientsService: ClientsService,
@@ -81,6 +83,7 @@ export class DefaultLayoutComponent implements OnInit, OnDestroy {
 
   public async onClientSelectedChanged(client: Client) {
     this.clientIsLoading = true;
+    this.authUser.Project = null; // Evita que se vea que vuelve al dashboard al cambiar cliente -> revisar
     try {
       // Actualiza el cliente y el usuario autorizado
       await this.usersService.updateUserSelectedClient(this.authUser._id, client._id);

@@ -19,13 +19,17 @@ import { AppComponent } from './app.component';
 import { DefaultLayoutComponent } from './containers';
 import { ClientSelectionComponent } from './containers/default-layout/client-selection.component'
 import { ProjectSelectionComponent } from './containers/default-layout/project-selection.component'
+import { DashboardButtonComponent } from './containers/default-layout/dashboard-button.component'
 import { P404Component } from './views/error/404.component';
 import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './containers/login/login.component';
 import { RegisterComponent } from './views/register/register.component';
 
 const APP_CONTAINERS = [
-  DefaultLayoutComponent, ClientSelectionComponent, ProjectSelectionComponent
+  DefaultLayoutComponent,
+  ClientSelectionComponent,
+  ProjectSelectionComponent,
+  DashboardButtonComponent
 ];
 
 import {

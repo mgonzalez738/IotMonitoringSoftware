@@ -26,8 +26,8 @@ exports.indexUser = async (req, res, next) => {
     // Procesa el pedido
     try {
         let AggregationArray = [];
-        // Filtra por ClientId del usuario
-        if(req.user.ClientId) {
+        // Filtra por ClientId del usuario si no es super
+        if(req.user.ClientId && (req.user.Role !== 'super')) {
             AggregationArray.push({ $match : { ClientId: req.user.ClientId }});
         } 
         // Filtra usuarios Super
@@ -267,6 +267,11 @@ exports.updateUser = async (req, res, next) => {
             Logger.Save(Levels.Error, 'Database', `User ${req.params.userId} can not add ProjectsId to super user`, req.user._id);
             return next(new ErrorResponse('Can not add ProjectsId to super user', 400));
         }
+        if( ((req.user.Role==='user') || (req.user.Role==='guest')) && (!user._id.equals(req.user._id)))
+        {
+            Logger.Save(Levels.Error, 'Database', `Role ${user.Role} can not update other users`, req.user._id);
+            return next(new ErrorResponse(`Role ${user.Role} can not update other users`, 403));
+        }
         // Actualizacion
         const { UserId, FirstName, LastName, Email, Password, Role, CompanyId, ProjectsId, ClientId, ProjectId } = req.body; 
         if(UserId)
@@ -279,24 +284,26 @@ exports.updateUser = async (req, res, next) => {
             user.Email = Email;
         if(Password)
             user.Password = Password;
-        if(Role) 
-            user.Role = Role;
-        if(CompanyId)
-            user.CompanyId = CompanyId;
-        if(ProjectsId)
-            user.ProjectsId = ProjectsId;
-        if((ClientId !== undefined) && (req.user.Role === 'super')) {
-            if(ClientId === null) {
-                user.ClientId = undefined;
-            } else {
-                user.ClientId = ClientId;
-            }
-        }
         if(ProjectId === null) {
             user.ProjectId = undefined;
         } else {
             user.ProjectId = ProjectId;
         }
+        if((req.user.Role==='super') || (req.user.Role==='administrator')) {
+            if(Role) 
+                user.Role = Role;
+            if(CompanyId)
+                user.CompanyId = CompanyId;
+            if(ProjectsId)
+                user.ProjectsId = ProjectsId;
+            if((ClientId !== undefined) && (req.user.Role === 'super')) {
+                if(ClientId === null) {
+                    user.ClientId = undefined;
+                } else {
+                    user.ClientId = ClientId;
+                }
+            }
+        }       
         await user.save();
         // Respuesta
         Logger.Save(Levels.Info, 'Database', `User ${req.params.userId} updated in ${collectionName}`, req.user._id);

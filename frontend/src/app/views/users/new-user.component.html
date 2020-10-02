@@ -1,0 +1,105 @@
+<div class="animated fadeIn">
+
+  <form class="mt-2" (submit)="OnOk(newUserForm)" #newUserForm="ngForm">
+
+    <div class="row">
+      <!-- Primer columna -->
+      <div class="col-sm-6 col-md-6">
+        <!-- Usuario y Contraseña -->
+        <div class="row">
+          <div class="col">
+            <div class="card border-primary">
+              <div class="card-body">
+                <div class="input-group mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="icon-user"></i></span>
+                  </div>
+                  <input type="text" class="form-control" name="username" ngModel placeholder="Usuario" autocomplete="username" [ngClass]="{'is-invalid': usernameEmpty }">
+                </div>
+                <div *ngIf="usernameEmpty" class="text-danger mt-n3 mb-3">Nombre de usuario requerido.</div>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="icon-lock"></i></span>
+                  </div>
+                  <input type="password" class="form-control" name="password" ngModel placeholder="Contraseña" autocomplete="current-password" [ngClass]="{'is-invalid': passwordEmpty }">
+                </div>
+                <div *ngIf="passwordEmpty" class="text-danger mb-n1">Contraseña requerida.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Usuario y Contraseña -->
+        <div class="row">
+          <div class="col">
+            <div class="card border-primary">
+              <div class="card-body">
+                <div class="input-group mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="icon-user"></i></span>
+                  </div>
+                  <input type="text" class="form-control" name="firstname" ngModel placeholder="Nombre" autocomplete="firstname" [ngClass]="{'is-invalid': firstnameEmpty }">
+                </div>
+                <div *ngIf="firstnameEmpty" class="text-danger mt-n3 mb-3">Nombre requerido.</div>
+                <div class="input-group mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="icon-user"></i></span>
+                  </div>
+                  <input type="text" class="form-control" name="lastname" ngModel placeholder="Apellido" autocomplete="lastname" [ngClass]="{'is-invalid': lastnameEmpty }">
+                </div>
+                <div *ngIf="lastnameEmpty" class="text-danger mt-n3 mb-3">Apellido requerido.</div>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fa fa-at"></i></span>
+                  </div>
+                  <input type="text" class="form-control" name="email" ngModel placeholder="Email" autocomplete="email" [ngClass]="{'is-invalid': emailEmpty }">
+                </div>
+                <div *ngIf="emailEmpty" class="text-danger mb-3">Email requerido.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Segunda Columna -->
+      <div class="col-sm-6 col-md-6">
+        <!-- Rol y Proyectos -->
+        <div class="row">
+          <div class="col">
+            <div class="card border-primary">
+              <div class="card-body">
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fa fa-drivers-license-o"></i></span>
+                  </div>
+                    <select class="form-control" name="role" [(ngModel)]="roleSelected">
+                      <option value="guest">invitado</option>
+                      <option value="user">usuario</option>
+                      <option value="administrator">administrador</option>
+                      <option value="super" *ngIf="authUser.Role==='super'">super</option>
+                    </select>
+                </div>
+                <p class="text-muted mt-3" *ngIf="roleSelected==='guest' || roleSelected==='user'">Proyectos:</p>
+                <div class="input-group" *ngIf="roleSelected==='guest' || roleSelected==='user'">
+                  <select class="form-control mt-n2" multiple name="projects" ngModel>
+                    <option *ngFor="let project of projects" value={{project._id}}>{{project.Name}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row justify-content-left">
+      <div class="col-sm-6 col-md-6">
+        <div *ngIf="storeError" class="text-danger mt-n2 mb-3"> {{ storeErrorMessage }}</div>
+        <button type="submit" class="btn btn-primary">
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" *ngIf="isLoading"></span>
+          Aceptar
+        </button>
+      </div>
+    </div>
+
+  </form>
+
+</div>

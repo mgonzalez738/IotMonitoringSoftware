@@ -78,7 +78,7 @@ export const navItems: INavData[] = [
     children: [
       {
         name: 'Usuarios',
-        url: '/construccion',
+        url: '/users',
       },
       {
         name: 'Proyectos',

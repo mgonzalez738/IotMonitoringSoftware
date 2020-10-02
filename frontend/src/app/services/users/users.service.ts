@@ -27,4 +27,22 @@ export class UsersService {
     let res = await this.http.put(this.urlApi + "/users/" + userId, { ProjectId: projectId }).toPromise();
   }
 
+  // Obtiene el listado de usuarios
+  async getUsers(): Promise<User[]> {
+    let res = await this.http.get<{Data: User[]}>(this.urlApi + "/users").toPromise();
+    return res.Data;
+  }
+
+  // Guarda un usuario
+  async storeUser(user:User): Promise<string> {
+    let res = await this.http.post<{'Data._id': string }>(this.urlApi + "/users", user).toPromise();
+    return res["Data._id"];
+  }
+
+  // Elimina un usuario
+  async deleteUser(id:string): Promise<void> {
+    await this.http.delete(this.urlApi + "/users/" + id).toPromise();
+    return;
+  }
+
 }
