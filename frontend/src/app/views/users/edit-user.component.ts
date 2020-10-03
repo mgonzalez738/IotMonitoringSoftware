@@ -15,27 +15,34 @@ import { Project } from '../../models/projectModel';
 export class EditUserComponent implements OnInit {
 
   private paramUserId;
-  authUser: UserPopulated;
-  roleSelected: string = "guest";
-  projects: Project[];
-  user: User;
+  public authUser: UserPopulated;
+  public projects: Project[];
+  private user: User;
 
-  usernameError = false;
-  usernameErrorMessage = "";
-  passwordError = false;
-  passwordErrorMessage = "";
-  passwordRepeatError = false;
-  passwordRepeatErrorMessage = "";
-  firstnameError = false;
-  firstnameErrorMessage = "";
-  lastnameError = false;
-  lastnameErrorMessage = "";
-  emailError = false;
-  emailErrorMessage = "";
+  public modifyPassword = false;
+  public username: string;
+  public firstname: string;
+  public lastname: string;
+  public email: string;
+  public roleSelected: string;
+  public projectsSelected: string[];
 
-  isLoading = false;
-  storeError = false;
-  storeErrorMessage = "";
+  public usernameError = false;
+  public usernameErrorMessage = "";
+  public passwordError = false;
+  public passwordErrorMessage = "";
+  public passwordRepeatError = false;
+  public passwordRepeatErrorMessage = "";
+  public firstnameError = false;
+  public firstnameErrorMessage = "";
+  public lastnameError = false;
+  public lastnameErrorMessage = "";
+  public emailError = false;
+  public emailErrorMessage = "";
+
+  public isLoading = false;
+  public storeError = false;
+  public storeErrorMessage = "";
 
   constructor(
     private usersService: UsersService,
@@ -49,18 +56,40 @@ export class EditUserComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+
     try {
-      this.user = await this.usersService.getUserByUsername(this.paramUserId)[0];
-      this.authUser = await this.usersService.getAuthUser();
+      this.user = await this.usersService.getUserByUsername(this.paramUserId);
+      this.username = this.user.UserId;
+      this.firstname = this.user.FirstName;
+      this.lastname = this.user.LastName;
+      this.email = this.user.Email;
+      this.roleSelected = this.user.Role;
+      this.projectsSelected = this.user.ProjectsId;
+    } catch (error) {
+      console.log(error);
+      return;
+    }
+
+    try {
       this.projects = await this.projectsService.getProjects();
     } catch (error) {
       console.log(error);
+      return;
+    }
+
+    try {
+      this.authUser = await this.usersService.getAuthUser();
+    } catch (error) {
+      console.log(error);
+      return;
     }
   }
 
-  async OnOk(form: NgForm) {
+  onModifiyPassword(event) {
+    this.modifyPassword = true;
+  }
 
-    console.log(this.paramUserId);
+  async OnOk(form: NgForm) {
 
     let error = false;
     this.isLoading = true;
@@ -81,38 +110,35 @@ export class EditUserComponent implements OnInit {
       this.usernameErrorMessage = "Solo letras y numeros permitidos.";
       error = true;
     } else {
-      const users = await this.usersService.getUserByUsername(form.value.username);
-      if(users.length > 0) {
-        this.usernameError = true;
-        this.usernameErrorMessage = "Nombre de usuario existente.";
+        this.usernameError = false;
+    }
+
+    if(this.modifyPassword) {
+      if(form.value.password === ""){
+        this.passwordError = true;
+        this.passwordErrorMessage = "Contraseña requerida.";
+        error = true;
+      } else if (!passwordPattern.test(form.value.password)){
+        this.passwordError = true;
+        this.passwordErrorMessage = "Requiere 8 o más caracteres con al menos una mayúscula, una minúscula y un número.";
         error = true;
       } else {
-        this.usernameError = false;
+        this.passwordError = false;
       }
     }
 
-    if(form.value.password === ""){
-      this.passwordError = true;
-      this.passwordErrorMessage = "Contraseña requerida.";
-      error = true;
-    } else if (!passwordPattern.test(form.value.password)){
-      this.passwordError = true;
-      this.passwordErrorMessage = "Requiere 8 o más caracteres con al menos una mayúscula, una minúscula y un número.";
-      error = true;
-    } else {
-      this.passwordError = false;
-    }
-
-    if(form.value.passwordRepeat === ""){
-      this.passwordRepeatError = true;
-      this.passwordRepeatErrorMessage = "Repetir contraseña requerido.";
-      error = true;
-    } else if (form.value.passwordRepeat !== form.value.password){
-      this.passwordRepeatError = true;
-      this.passwordRepeatErrorMessage = "Las contraseñas no.";
-      error = true;
-    } else {
-      this.passwordRepeatError = false;
+    if(this.modifyPassword) {
+      if(form.value.passwordRepeat === ""){
+        this.passwordRepeatError = true;
+        this.passwordRepeatErrorMessage = "Repetir contraseña requerido.";
+        error = true;
+      } else if (form.value.passwordRepeat !== form.value.password){
+        this.passwordRepeatError = true;
+        this.passwordRepeatErrorMessage = "Las contraseñas no.";
+        error = true;
+      } else {
+        this.passwordRepeatError = false;
+      }
     }
 
     if(form.value.firstname === ""){
@@ -143,22 +169,23 @@ export class EditUserComponent implements OnInit {
       this.isLoading = false;
       return;
     }
-    this.user = new User();
+
     this.user.UserId = form.value.username;
-    this.user.Password = form.value.password;
+    if(this.modifyPassword) {
+      this.user.Password = form.value.password;
+    }
     this.user.FirstName = form.value.firstname;
     this.user.LastName = form.value.lastname;
     this.user.Email = form.value.email;
     this.user.Role = form.value.role;
-    if(form.value.projects.length > 0) {
-      this.user.ProjectsId = form.value.projects;
-    }
-    if(this.user.Role !== 'super') {
-      this.user.ClientId = this.authUser.Client._id;
+    if((form.value.role !== 'super') && (form.value.role !== 'administrator')) {
+      if(form.value.projects.length > 0) {
+        this.user.ProjectsId = form.value.projects;
+      }
     }
 
     try {
-      let res = await this.usersService.storeUser(this.user);
+      let res = await this.usersService.updateUser(this.user);
       this.storeError = false;
       this.storeErrorMessage = "";
       this.isLoading = false;

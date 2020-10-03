@@ -31,6 +31,10 @@ export class UsersComponent implements OnInit {
   }
 
   onEdit(event, user: User) {
+    if(user.UserId === 'mgonzalez738') {
+      this.mogModal.show();
+      return;
+    }
     this.router.navigate(['/users', user.UserId]);
   }
 

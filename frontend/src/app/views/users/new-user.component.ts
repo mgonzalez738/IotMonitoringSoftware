@@ -71,8 +71,8 @@ export class NewUserComponent implements OnInit {
       this.usernameErrorMessage = "Solo letras y numeros permitidos.";
       error = true;
     } else {
-      const users = await this.usersService.getUserByUsername(form.value.username);
-      if(users.length > 0) {
+      const user = await this.usersService.getUserByUsername(form.value.username);
+      if(user) {
         this.usernameError = true;
         this.usernameErrorMessage = "Nombre de usuario existente.";
         error = true;
@@ -140,8 +140,10 @@ export class NewUserComponent implements OnInit {
     this.user.LastName = form.value.lastname;
     this.user.Email = form.value.email;
     this.user.Role = form.value.role;
-    if(form.value.projects.length > 0) {
-      this.user.ProjectsId = form.value.projects;
+    if((form.value.role !== 'super') && (form.value.role !== 'administrator')) {
+      if(form.value.projects.length > 0) {
+        this.user.ProjectsId = form.value.projects;
+      }
     }
     if(this.user.Role !== 'super') {
       this.user.ClientId = this.authUser.Client._id;

@@ -1,6 +1,5 @@
 <div class="animated fadeIn">
-
-  <form class="mt-2" (submit)="OnOk(newUserForm)" #newUserForm="ngForm">
+  <form class="mt-1" (submit)="OnOk(newUserForm)" #newUserForm="ngForm">
 
     <div class="row">
       <!-- Primer columna -->
@@ -108,6 +107,9 @@
     <div class="row justify-content-left">
       <div class="col-sm-6 col-md-6">
         <div *ngIf="storeError" class="text-danger mt-n2 mb-3"> {{ storeErrorMessage }}</div>
+        <button class="btn btn-secondary mr-2" routerLink="/users">
+          Cancelar
+        </button>
         <button type="submit" class="btn btn-primary">
           <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" *ngIf="isLoading"></span>
           Aceptar
@@ -116,5 +118,4 @@
     </div>
 
   </form>
-
 </div>

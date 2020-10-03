@@ -51,4 +51,10 @@ export class UsersService {
     return;
   }
 
+  // Actualiza un usuario
+  async updateUser(user:User): Promise<void> {
+    await this.http.put(this.urlApi + "/users/" + user._id, user).toPromise();
+    return;
+  }
+
 }
