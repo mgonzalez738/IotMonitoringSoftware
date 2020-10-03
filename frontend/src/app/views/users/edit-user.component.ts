@@ -49,10 +49,8 @@ export class EditUserComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-
-
-
     try {
+      this.user = await this.usersService.getUserByUsername(this.paramUserId)[0];
       this.authUser = await this.usersService.getAuthUser();
       this.projects = await this.projectsService.getProjects();
     } catch (error) {

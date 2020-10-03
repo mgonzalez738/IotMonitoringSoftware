@@ -34,9 +34,9 @@ export class UsersService {
   }
 
   // Obtiene un usuario por Username
-  async getUserByUsername(username: string): Promise<User[]> {
+  async getUserByUsername(username: string): Promise<User> {
     let res = await this.http.get<{Data: User[]}>(this.urlApi + "/users?userid=" + username).toPromise();
-    return res.Data;
+    return res.Data[0];
   }
 
   // Guarda un usuario
