@@ -134,7 +134,7 @@ export class EditUserComponent implements OnInit {
         error = true;
       } else if (form.value.passwordRepeat !== form.value.password){
         this.passwordRepeatError = true;
-        this.passwordRepeatErrorMessage = "Las contraseñas no.";
+        this.passwordRepeatErrorMessage = "Las contraseñas no coinciden.";
         error = true;
       } else {
         this.passwordRepeatError = false;
