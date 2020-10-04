@@ -110,6 +110,9 @@ Awesome, nor vice versa. **Please do not use brand logos for any purpose except
 to represent the company, product, or service to which they refer.**
 
 
+azure-maps-control
+SEE LICENSE IN LICENSE.TXT
+
 chart.js
 MIT
 The MIT License (MIT)
@@ -300,13 +303,7 @@ THE SOFTWARE.
 ng2-charts
 ISC
 
-ngx-bootstrap/alert
-
 ngx-bootstrap/buttons
-
-ngx-bootstrap/carousel
-
-ngx-bootstrap/collapse
 
 ngx-bootstrap/component-loader
 
@@ -314,17 +311,9 @@ ngx-bootstrap/dropdown
 
 ngx-bootstrap/modal
 
-ngx-bootstrap/pagination
-
-ngx-bootstrap/popover
-
 ngx-bootstrap/positioning
 
-ngx-bootstrap/progressbar
-
 ngx-bootstrap/tabs
-
-ngx-bootstrap/tooltip
 
 ngx-bootstrap/utils
 

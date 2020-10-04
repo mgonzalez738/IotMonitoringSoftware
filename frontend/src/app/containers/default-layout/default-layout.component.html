@@ -14,9 +14,16 @@
       <a class="nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" dropdownToggle (click)="false">
         <img src="assets/img/brand/user.png" class="img-avatar" alt="Usuario"/>
       </a>
-      <div class="dropdown-menu dropdown-menu-right" *dropdownMenu aria-labelledby="simple-dropdown">
-        <a class="dropdown-item" href="#"><i class="fa fa-user"></i> Cuenta</a>
-        <a class="dropdown-item" href="#" (click)="onLogout()"><i class="fa fa-lock"></i> Salir</a>
+      <div class="dropdown-menu dropdown-menu-right" *dropdownMenu aria-labelledby="simple-dropdown" >
+        <div class="card border-light mb-n1">
+          <div class="card-body mt-n2">
+            <h4 class="card-title text-primary">{{ authUser?.UserId }}</h4>
+            <span class="card-text ">{{ authUser?.FirstName }}&nbsp;{{ authUser?.LastName }}</span>
+            <span class="card-text">{{ authUser?.Email }}</span>
+            <button type="button" class="btn btn-link float-right mb-n3 mr-n1" [routerLink]="['/users', authUser?.UserId]" *ngIf="authUser?.Role==='super' || authUser?.Role==='administrator'">Editar</button>
+          </div>
+        </div>
+        <a class="dropdown-item text-primary" href="#" (click)="onLogout()" ><i class="fa fa-lock text-primary mr-n1 mt-2 mb-n1"></i> Salir</a>
       </div>
     </li>
   </ul>
@@ -55,18 +62,19 @@
 
   <!-- Main content -->
   <main class="main">
-
     <!-- Breadcrumb -->
     <cui-breadcrumb>
       <!-- Breadcrumb Menu-->
       <li class="breadcrumb-menu d-md-down-none">
         <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
-          <!--<a class="btn" href="#"><i class="icon-speech"></i></a>-->
+          <a class="btn text-primary" [routerLink]="['/map']">
+            <i class="icon-location-pin mr-1"></i>
+            Mapa
+          </a>
           <a class="btn text-primary" [routerLink]="['/users']" *ngIf="authUser?.Role==='super' || authUser?.Role==='administrator'">
             <i class="fa fa-user-o mr-1"></i>
             Usuarios
           </a>
-          <!--<a class="btn" href="#"><i class="icon-settings"></i> &nbsp;Settings</a>-->
         </div>
       </li>
     </cui-breadcrumb>

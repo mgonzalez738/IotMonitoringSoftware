@@ -11,7 +11,7 @@ import { AuthService } from './services/auth/auth.service';
 export class AppComponent implements OnInit {
   constructor(private router: Router, private authService: AuthService) { }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.authService.autoAuthUser();
     this.router.events.subscribe((evt) => {
       if (!(evt instanceof NavigationEnd)) {

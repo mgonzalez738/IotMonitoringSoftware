@@ -3,6 +3,7 @@ import { Router, ActivatedRoute, ParamMap } from '@angular/router'
 import { NgForm, PatternValidator } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 
+import { AuthService } from '../../services/auth/auth.service';
 import { UsersService } from '../../services/users/users.service';
 import { ProjectsService } from '../../services/projects/projects.service';
 
@@ -47,6 +48,7 @@ export class EditUserComponent implements OnInit {
   constructor(
     private usersService: UsersService,
     private projectsService: ProjectsService,
+    private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
   ) {
@@ -78,7 +80,7 @@ export class EditUserComponent implements OnInit {
     }
 
     try {
-      this.authUser = await this.usersService.getAuthUser();
+      this.authUser = await this.authService.getAuthUser();
     } catch (error) {
       console.log(error);
       return;
@@ -96,6 +98,7 @@ export class EditUserComponent implements OnInit {
     const passwordPattern = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}");
     const whitespacePattern = new RegExp("^(?=.*\\s)");
     const letterNumberPattern = new RegExp("^(?=.*[^A-Za-z0-9])");
+    const emailPattern = new RegExp("^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$");
 
     if(form.value.username === "") {
       this.usernameError = true;
@@ -160,6 +163,10 @@ export class EditUserComponent implements OnInit {
     if(form.value.email === ""){
       this.emailError = true;
       this.emailErrorMessage = "Email requerido.";
+      error = true;
+    } else if (!emailPattern.test(form.value.email)) {
+      this.emailError = true;
+      this.emailErrorMessage = "Email inválido.";
       error = true;
     } else {
       this.emailError = false;

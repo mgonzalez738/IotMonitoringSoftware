@@ -3,7 +3,13 @@
 // `ng build --env=prod` then `environment.prod.ts` will be used instead.
 // The list of which env maps to which file can be found in `.angular-cli.json`.
 
+import { AuthenticationType } from 'azure-maps-control';
+
 export const environment = {
   production: false,
-  backendApiUrl: "http://localhost:3000/api"
-};
+  backendApiUrl: "http://localhost:3000/api",
+  azureMapAuthOptions: {
+    authType: AuthenticationType.subscriptionKey,
+    subscriptionKey: 'XRCgif7kmtqAjBDsYI5p3d-L9mvC7MfkN6G4Cyuckzk'
+  }
+}

@@ -23,7 +23,6 @@ import { DashboardButtonComponent } from './containers/default-layout/dashboard-
 import { P404Component } from './views/error/404.component';
 import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './containers/login/login.component';
-import { RegisterComponent } from './views/register/register.component';
 
 const APP_CONTAINERS = [
   DefaultLayoutComponent,
@@ -65,7 +64,7 @@ import { AuthInterceptor } from './services/auth/auth.interceptor';
     TabsModule.forRoot(),
     ChartsModule,
     FormsModule,
-    HttpClientModule
+    HttpClientModule,
   ],
   declarations: [
     AppComponent,
@@ -73,7 +72,6 @@ import { AuthInterceptor } from './services/auth/auth.interceptor';
     P404Component,
     P500Component,
     LoginComponent,
-    RegisterComponent
   ],
   providers: [
     { provide: LocationStrategy, useClass: HashLocationStrategy },

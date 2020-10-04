@@ -4,16 +4,21 @@ import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
+import { UserPopulated } from '../../models/userModel'
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
   private urlApi = environment.backendApiUrl;
-  private authStatusListener = new Subject<boolean>();
   private token: string = null;
   private authStatus: boolean = false;
+  private authStatusListener = new Subject<boolean>();
+  private authUser: UserPopulated = null;
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(
+    private http: HttpClient,
+    private router: Router
+    ) { }
 
   getToken(): string {
     return this.token;
@@ -23,8 +28,36 @@ export class AuthService {
     return this.authStatus;
   }
 
-  getAuthStatusListener() {
-    return this.authStatusListener.asObservable();
+  getAuthUser(): UserPopulated {
+    return this.authUser;
+  }
+
+  async setAuthUser(): Promise<void> {
+    try {
+      this.authUser = (await this.http.get<{Data: UserPopulated}>(this.urlApi + "/users/me?populate=true").toPromise()).Data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // Actualiza el cliente seleccionado
+  async setAuthUserSelectedClient(clientId: string): Promise<void> {
+    try {
+      await this.http.put(this.urlApi + "/users/" + this.authUser._id, { ClientId: clientId }).toPromise();
+      this.authUser = (await this.http.get<{Data: UserPopulated}>(this.urlApi + "/users/me?populate=true").toPromise()).Data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // Actualiza el proyecto seleccionado
+  async updateUserSelectedProject(projectId: string): Promise<void> {
+    try {
+      await this.http.put(this.urlApi + "/users/" + this.authUser._id, { ProjectId: projectId }).toPromise();
+      this.authUser = (await this.http.get<{Data: UserPopulated}>(this.urlApi + "/users/me?populate=true").toPromise()).Data;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async login(username: string, password: string):Promise<boolean> {
@@ -42,13 +75,14 @@ export class AuthService {
     }
     catch (error) {
       this.token = null;
-      this.authStatusListener.next(false);
       this.authStatus = false;
+      this.authStatusListener.next(false);
+      this.authUser = null;
       throw error;
     }
   }
 
-  autoAuthUser() {
+  async autoAuthUser() {
     const authInformation = this.getAuthData();
     if(authInformation) {
       this.token = authInformation.token;
@@ -61,6 +95,7 @@ export class AuthService {
     this.token = null;
     this.authStatus = false;
     this.authStatusListener.next(false);
+    this.authUser = null;
     this.clearAuthData();
     this.router.navigate(['/login']);
   }
@@ -72,7 +107,7 @@ export class AuthService {
   private getAuthData() {
     const token = localStorage.getItem('token');
     if(!token) {
-      return;
+      return null;
     }
     return {
       token: token
